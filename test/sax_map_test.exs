@@ -47,6 +47,15 @@ defmodule SAXMapTest do
           <feature>f1</feature>
         </meta1>
         <key>rootkey1</key>
+        <meta2>
+          <key>
+            <item>1</item>
+            <item>2</item>
+          </key>
+          <feature>
+            <func>func1</func>
+          </feature>
+        </meta2>
       </data>
     """
 
@@ -57,7 +66,8 @@ defmodule SAXMapTest do
                "attribute" => ["A0", "A1", "C1"],
                "items" => %{"item" => ["1", "2", "3", "4"]},
                "meta1" => %{"key" => ["key1", "key2"], "feature" => "f1"},
-               "key" => "rootkey1"
+               "key" => "rootkey1",
+               "meta2" => %{"key" => %{"item" => ["1", "2"]}, "feature" => %{"func" => "func1"}}
              }
            }
   end
