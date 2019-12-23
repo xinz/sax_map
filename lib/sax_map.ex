@@ -17,8 +17,8 @@ defmodule SAXMap do
       map = Map.put(%{}, root_name, into_map(elements, %{}))
       {:ok, map}
     end
-    def handle_event(:end_document, _data, {_queue, _processing, elements}) do
-      {:ok, List.first(elements)}
+    def handle_event(:end_document, _data, {_queue, _processing, [element]}) do
+      {:ok, element}
     end
 
     def handle_event(:start_element, {name, _attributes}, {queue, processing, elements}) do
