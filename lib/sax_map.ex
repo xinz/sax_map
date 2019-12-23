@@ -35,8 +35,8 @@ defmodule SAXMap do
         when length(rest) > 0 do
       children_count = Enum.find_index(processing, fn x -> x == name end)
       processing = Enum.slice(processing, children_count..-1)
-      {peek_elements, rest_elements} = Enum.split(elements, children_count)
-      element = Map.put(%{}, name, merge(peek_elements))
+      {peer_elements, rest_elements} = Enum.split(elements, children_count)
+      element = Map.put(%{}, name, merge(peer_elements))
       {:ok, {rest, processing, [element | rest_elements]}}
     end
 
