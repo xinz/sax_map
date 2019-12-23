@@ -121,7 +121,7 @@ defmodule SAXMap do
   @spec from_string(xml :: String.t()) ::
           {:ok, map :: map()} | {:error, exception :: Saxy.ParseError.t()}
   def from_string(xml) do
-    Saxy.parse_string(xml, Handler, [])
+    Saxy.parse_string(xml, Handler, nil)
   end
 
 end
