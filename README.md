@@ -1,5 +1,7 @@
 # SAXMap
 
+[![hex.pm version](https://img.shields.io/hexpm/v/sax_map.svg)](https://hex.pm/packages/sax_map)
+
 Converts an XML String to a Map.
 
 Benefit from [Saxy](https://hex.pm/packages/saxy)'s SAX mode, this library has a good conversion efficiency.
