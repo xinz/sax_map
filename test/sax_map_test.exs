@@ -10,6 +10,15 @@ defmodule SAXMapTest do
     assert map == %{"root" => %{}}
   end
 
+  test "simple xml" do
+    xml = """
+      <xml>Test</xml>
+    """
+
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map == %{"xml" => "Test"}
+  end
+
   test "simple xml with CDATA" do
     xml = """
     <?xml version="1.0" encoding="UTF-8" ?>
