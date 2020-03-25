@@ -4,7 +4,7 @@ defmodule SaxMap.MixProject do
   def project do
     [
       app: :sax_map,
-      version: "0.1.1",
+      version: "0.2.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -29,7 +29,7 @@ defmodule SaxMap.MixProject do
   end
 
   defp description do
-    "XML to Map converter via a SAX parser"
+    "A fast and efficient tool for converting XML to Elixir Map"
   end
 
   defp package do
