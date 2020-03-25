@@ -63,18 +63,18 @@ Benchmarking SAXMap.from_string...
 Benchmarking XmlToMap.naive_map...
 
 Name                         ips        average  deviation         median         99th %
-SAXMap.from_string       24.15 K       41.40 μs    ±67.10%          35 μs         131 μs
-XmlToMap.naive_map       16.28 K       61.42 μs    ±89.04%          49 μs         224 μs
+SAXMap.from_string       30.54 K       32.74 μs    ±46.08%          31 μs          72 μs
+XmlToMap.naive_map       20.42 K       48.97 μs    ±30.19%          44 μs         105 μs
 
 Comparison:
-SAXMap.from_string       24.15 K
-XmlToMap.naive_map       16.28 K - 1.48x slower +20.02 μs
+SAXMap.from_string       30.54 K
+XmlToMap.naive_map       20.42 K - 1.50x slower +16.23 μs
 
 Memory usage statistics:
 
 Name                  Memory usage
 SAXMap.from_string        14.82 KB
-XmlToMap.naive_map        33.20 KB - 2.24x memory usage +18.38 KB
+XmlToMap.naive_map        34.66 KB - 2.34x memory usage +19.84 KB
 
 **All measurements for memory usage were the same**
 ```
