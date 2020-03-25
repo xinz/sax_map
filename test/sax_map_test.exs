@@ -38,6 +38,35 @@ defmodule SAXMapTest do
            }
   end
 
+  test "duplicate key" do
+    xml = """
+    <Request>
+      <Header>Hi</Header>
+      <a>1</a>
+      <Body><![CDATA[test content!]]></Body>
+      <a>
+        <test>
+          <test1>1</test1>
+          <test1>2</test1>
+        </test>
+        <test>2</test>
+      </a>
+      <b>100</b>
+    </Request>
+    """
+
+    {:ok, map} = SAXMap.from_string(xml)
+
+    assert map == %{
+      "Request" => %{
+        "Body" => "test content!",
+        "Header" => "Hi",
+        "a" => ["1", %{"test" => [%{"test1" => ["1", "2"]}, "2"]}],
+        "b" => "100"
+      }
+    }
+  end
+
   test "keep order of peer nodes" do
     xml = """
       <data>

@@ -14,8 +14,10 @@ defmodule SAXMap do
     end
 
     def handle_event(:end_document, _data, {root_name, elements}) do
-      map = Map.put(%{}, root_name, into_map(elements, %{}))
-      {:ok, map}
+      {
+        :ok,
+        %{root_name => into_map(elements, %{})}
+      }
     end
     def handle_event(:end_document, _data, {_queue, _processing, [element]}) do
       {:ok, element}
@@ -30,17 +32,16 @@ defmodule SAXMap do
           name,
           {[{:characters, chars}, {:start_element, name} | rest], processing, elements}
         ) do
-      element = Map.put(%{}, name, chars)
-      {:ok, {rest, processing, [element | elements]}}
+      {:ok, {rest, processing, [%{name => chars} | elements]}}
     end
 
     def handle_event(:end_element, name, {[{:start_element, name} | rest], processing, elements})
-        when length(rest) > 0 do
+        when rest != [] do
       children_count = Enum.find_index(processing, fn x -> x == name end)
       processing = Enum.slice(processing, children_count..-1)
       {peer_elements, rest_elements} = Enum.split(elements, children_count)
-      element = Map.put(%{}, name, merge(peer_elements))
-      {:ok, {rest, processing, [element | rest_elements]}}
+      new_element = %{name => merge(peer_elements)}
+      {:ok, {rest, processing, [new_element | rest_elements]}}
     end
 
     def handle_event(
