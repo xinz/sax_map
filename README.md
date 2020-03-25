@@ -11,7 +11,7 @@ Benefit from [Saxy](https://hex.pm/packages/saxy)'s SAX mode, this library has a
 ```elixir
 def deps do
   [
-    {:sax_map, "~> 0.1"}
+    {:sax_map, "~> 0.2"}
   ]
 end
 ```
