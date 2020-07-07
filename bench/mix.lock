@@ -1,7 +1,7 @@
 %{
   "benchee": {:hex, :benchee, "1.0.1", "66b211f9bfd84bd97e6d1beaddf8fc2312aaabe192f776e8931cb0c16f53a521", [:mix], [{:deep_merge, "~> 1.0", [hex: :deep_merge, repo: "hexpm", optional: false]}], "hexpm", "3ad58ae787e9c7c94dd7ceda3b587ec2c64604563e049b2a0e8baafae832addb"},
   "deep_merge": {:hex, :deep_merge, "1.0.0", "b4aa1a0d1acac393bdf38b2291af38cb1d4a52806cf7a4906f718e1feb5ee961", [:mix], [], "hexpm", "ce708e5f094b9cd4e8f2be4f00d2f4250c4095be93f8cd6d018c753894885430"},
-  "elixir_xml_to_map": {:hex, :elixir_xml_to_map, "0.2.0", "78598e25810c70d834c05e18cad21959784c56c16aa9019e5e5013206fbb0fe3", [:mix], [{:erlsom, "~>1.4", [hex: :erlsom, repo: "hexpm", optional: false]}], "hexpm", "2c5e1e9ad2da564e8dd1a8d508d008bd6c3cf9502c8632861f495e97ab03147e"},
+  "elixir_xml_to_map": {:hex, :elixir_xml_to_map, "1.0.1", "8eaac89644e033f472e19f66a88288a3e36a621cf695a7fd323a1dc481b15c15", [:mix], [{:erlsom, "~>1.4", [hex: :erlsom, repo: "hexpm", optional: false]}], "hexpm", "630e61fc23496c0981e6e605f5505bd477d29c2449d929453e1a762aa364fa99"},
   "erlsom": {:hex, :erlsom, "1.5.0", "c5a5cdd0ee0e8dca62bcc4b13ff08da24fdefc16ccd8b25282a2fda2ba1be24a", [:rebar3], [], "hexpm", "55a9dbf9cfa77fcfc108bd8e2c4f9f784dea228a8f4b06ea10b684944946955a"},
-  "saxy": {:hex, :saxy, "1.0.0", "1078c54753949bebbe7a23321c0f5b26d38d433315bc5ed892b372582c6ad6ee", [:mix], [], "hexpm", "e31e8171ae809469ee715284cf4bb14978b9960c0f1681de84a7eae29abc9b75"},
+  "saxy": {:hex, :saxy, "1.2.0", "da3401bf472d0a1f4b04fd138ff63f3d9055b5e5209cd4a150e01819962c6348", [:mix], [], "hexpm", "c0fe73e8d6328c8a8c8dc1ea432592d52648a0e0e18918385a92bc10dc269790"},
 }

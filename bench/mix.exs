@@ -26,7 +26,7 @@ defmodule Bench.MixProject do
 
   defp deps do
     [
-      {:elixir_xml_to_map, "~> 0.2"},
+      {:elixir_xml_to_map, "~> 1.0"},
       {:sax_map, "~> 0.1", path: "../", override: true},
       {:benchee, "~> 1.0", only: :dev, runtime: false}
     ]
