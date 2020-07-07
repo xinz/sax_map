@@ -5,97 +5,6 @@ defmodule SAXMap do
   SAXMap uses a SAX parser (built on top of [Saxy](https://hex.pm/packages/saxy)) to transfer an XML string into a `Map` containing a collection of pairs where the key is the node name and the value is its content.
   """
 
-  defmodule Handler do
-    @moduledoc false
-    @behaviour Saxy.Handler
-
-    def handle_event(:start_document, _prolog, _state) do
-      {:ok, {[], [], []}}
-    end
-
-    def handle_event(:end_document, _data, {root_name, elements}) do
-      {
-        :ok,
-        %{root_name => into_map(elements, %{})}
-      }
-    end
-    def handle_event(:end_document, _data, {_queue, _processing, [element]}) do
-      {:ok, element}
-    end
-
-    def handle_event(:start_element, {name, _attributes}, {queue, processing, elements}) do
-      {:ok, {[{:start_element, name} | queue], [name | processing], elements}}
-    end
-
-    def handle_event(
-          :end_element,
-          name,
-          {[{:characters, chars}, {:start_element, name} | rest], processing, elements}
-        ) do
-      {:ok, {rest, processing, [%{name => chars} | elements]}}
-    end
-
-    def handle_event(:end_element, name, {[{:start_element, name} | rest], processing, elements})
-        when rest != [] do
-      children_count = Enum.find_index(processing, fn x -> x == name end)
-      processing = Enum.slice(processing, children_count..-1)
-      {peer_elements, rest_elements} = Enum.split(elements, children_count)
-      new_element = %{name => merge(peer_elements)}
-      {:ok, {rest, processing, [new_element | rest_elements]}}
-    end
-
-    def handle_event(
-          :end_element,
-          root_name,
-          {[{:start_element, root_name}], _processing, elements}
-        ) do
-      {:ok, {root_name, elements}}
-    end
-
-    def handle_event(:characters, chars, {queue, processing, elements}) do
-      if String.trim(chars) == "" do
-        {:ok, {queue, processing, elements}}
-      else
-        {:ok, {[{:characters, chars} | queue], processing, elements}}
-      end
-    end
-
-    defp merge(maps) do
-      Enum.reduce(maps, %{}, fn map, acc ->
-        Map.merge(acc, map, fn _k, v1, v2 ->
-          into_list(v2, v1)
-        end)
-      end)
-    end
-
-    defp into_map([], result) do
-      result
-    end
-
-    defp into_map([item | rest], result) do
-      [key] = Map.keys(item)
-      new_value = Map.get(item, key)
-
-      if Map.has_key?(result, key) do
-        result_value = Map.get(result, key)
-        value = into_list(new_value, result_value)
-        result = Map.put(result, key, value)
-        into_map(rest, result)
-      else
-        result = Map.put(result, key, new_value)
-        into_map(rest, result)
-      end
-    end
-
-    defp into_list(value, target) when is_list(target) do
-      [value | target]
-    end
-
-    defp into_list(value, target) do
-      [value | [target]]
-    end
-  end
-
   @doc ~S'''
   Use `Saxy.parse_string/4` with a custom SAX parse handler to extract a `Map` containing a collection of pairs where the key is the node name
   and the value is its content.
@@ -120,12 +29,74 @@ defmodule SAXMap do
          "thread" => %{"items" => %{"item" => ["item1", "item2"]}, "title" => "Hello"}
        }}
 
-  Please notice that both XML attributes and comments are ignored.
+  ## Options
+
+  * `:ignore_attribute`, whether to ignore the attributes of elements in the final map, by default is `true` so
+    there will not see any attributes in the result; when set this option as `false`, it equals `{false, ""}`,
+    in this case, there with append the attributes of all elements by the processing order, and put the attributes
+    key-value pair into the peer child elements, and also there can set this option as `{false, "@"}` or `{false, "-"}`,
+    any proper naming prefix you perfer should be fine to process.
+
+    ```
+    xml = """
+      <data attr1="1" attr2="false" item3="override">
+        <item1>item_value1</item1>
+        <item2>item_value2</item2>
+        <item3>item_value3</item3>
+        <groups>
+          <group attr="1">a</group>
+          <group attr="2">b</group>
+        </groups>
+      </data>
+    """
+
+    SAXMap.from_string(xml, ignore_attribute: false)
+
+    {:ok,
+      %{
+        "data" => %{
+          "attr1" => "1",
+          "attr2" => "false",
+          "groups" => %{"attr" => ["1", "2"], "group" => ["a", "b"]},
+          "item1" => "item_value1",
+          "item2" => "item_value2",
+          "item3" => "item_value3"
+        }
+      }}
+
+    SAXMap.from_string(xml, ignore_attribute: {false, "@"})
+
+    {:ok,
+      %{
+        "data" => %{
+          "@attr1" => "1",
+          "@attr2" => "false",
+          "@item3" => "override",
+          "groups" => %{"@attr" => ["1", "2"], "group" => ["a", "b"]},
+          "item1" => "item_value1",
+          "item2" => "item_value2",
+          "item3" => "item_value3"
+        }
+      }}
+    ```
+
+  Please notice that the comments of XML are ignored.
   '''
   @spec from_string(xml :: String.t()) ::
           {:ok, map :: map()} | {:error, exception :: Saxy.ParseError.t()}
-  def from_string(xml) do
-    Saxy.parse_string(xml, Handler, nil)
+  def from_string(xml, opts \\ []) do
+    ignore_attribute = Keyword.get(opts, :ignore_attribute, true)
+    parse_from_string(xml, ignore_attribute)
+  end
+
+  defp parse_from_string(xml, true) do
+    Saxy.parse_string(xml, SAXMap.Handler.IgnoreAttribute, [])
+  end
+  defp parse_from_string(xml, false) do
+    parse_from_string(xml, {false, ""})
+  end
+  defp parse_from_string(xml, {false, prefix}) do
+    Saxy.parse_string(xml, SAXMap.Handler.AppendAttribute, [attribute_naming_prefix: prefix])
   end
 
 end

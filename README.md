@@ -37,7 +37,52 @@ iex(2)> SAXMap.from_string(xml)
  }}
 ```
 
-Please **notice** that both XML attributes and comments are ignored.
+By default `SAXMap.from_string` will ignore all attributes of elements in the result, if you want to merge the attributes as the child elements, please use `ignore_attribute` option to achieve this:
+
+```
+xml = """
+  <data attr1="1" attr2="false" item3="override">
+    <item1>item_value1</item1>
+    <item2>item_value2</item2>
+    <item3>item_value3</item3>
+    <groups>
+      <group attr="1">a</group>
+      <group attr="2">b</group>
+    </groups>
+  </data>
+"""
+
+SAXMap.from_string(xml, ignore_attribute: false)
+
+{:ok,
+  %{
+    "data" => %{
+      "attr1" => "1",
+      "attr2" => "false",
+      "groups" => %{"attr" => ["1", "2"], "group" => ["a", "b"]},
+      "item1" => "item_value1",
+      "item2" => "item_value2",
+      "item3" => "item_value3"
+    }
+  }}
+
+SAXMap.from_string(xml, ignore_attribute: {false, "@"})
+
+{:ok,
+  %{
+    "data" => %{
+      "@attr1" => "1",
+      "@attr2" => "false",
+      "@item3" => "override",
+      "groups" => %{"@attr" => ["1", "2"], "group" => ["a", "b"]},
+      "item1" => "item_value1",
+      "item2" => "item_value2",
+      "item3" => "item_value3"
+    }
+  }}
+```
+
+**Notice**: The `ignore_attribute: false` equals `ignore_attribute: {false, ""}`, if the naming of attribute has the same name with the child element in a peer, there will use child element's value to override this naming key.
 
 ## Benchmark
 
@@ -45,11 +90,11 @@ Only for your reference, all of credit belong to [Saxy](https://hex.pm/packages/
 
 ```bash
 Operating System: macOS
-CPU Information: Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz
-Number of Available Cores: 4
-Available memory: 8 GB
-Elixir 1.9.4
-Erlang 22.1.8
+CPU Information: Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz
+Number of Available Cores: 16
+Available memory: 32 GB
+Elixir 1.10.3
+Erlang 22.3.4.2
 
 Benchmark suite executing with the following configuration:
 warmup: 2 s
@@ -63,18 +108,18 @@ Benchmarking SAXMap.from_string...
 Benchmarking XmlToMap.naive_map...
 
 Name                         ips        average  deviation         median         99th %
-SAXMap.from_string       30.54 K       32.74 μs    ±46.08%          31 μs          72 μs
-XmlToMap.naive_map       20.42 K       48.97 μs    ±30.19%          44 μs         105 μs
+SAXMap.from_string       25.70 K       38.91 μs    ±28.84%          36 μs          91 μs
+XmlToMap.naive_map       14.39 K       69.48 μs    ±21.32%          66 μs         143 μs
 
 Comparison:
-SAXMap.from_string       30.54 K
-XmlToMap.naive_map       20.42 K - 1.50x slower +16.23 μs
+SAXMap.from_string       25.70 K
+XmlToMap.naive_map       14.39 K - 1.79x slower +30.57 μs
 
 Memory usage statistics:
 
 Name                  Memory usage
-SAXMap.from_string        14.82 KB
-XmlToMap.naive_map        34.66 KB - 2.34x memory usage +19.84 KB
+SAXMap.from_string        18.40 KB
+XmlToMap.naive_map        39.96 KB - 2.17x memory usage +21.56 KB
 
 **All measurements for memory usage were the same**
 ```
