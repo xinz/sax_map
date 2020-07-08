@@ -1,8 +1,8 @@
-defmodule SAXMap.Handler.AppendAttribute do
+defmodule SAXMap.Bench.Handler.V1.AppendAttribute do
   @moduledoc false
   @behaviour Saxy.Handler
 
-  alias SAXMap.Utils
+  alias SAXMap.Bench.Utils
 
   def handle_event(:start_document, _prolog, opts) do
     {:ok, {[], [], [], opts}}

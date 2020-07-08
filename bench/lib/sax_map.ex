@@ -1,5 +1,7 @@
-defmodule SAXMap do
+defmodule SAXMap.Bench.V1 do
   @moduledoc """
+  THIS IS THE OLD IMPLEMENT FOR COMPARE.
+
   XML to Map conversion.
 
   SAXMap uses a SAX parser (built on top of [Saxy](https://hex.pm/packages/saxy)) to transfer an XML string into a `Map` containing a collection of pairs where the key is the node name and the value is its content.
@@ -84,14 +86,19 @@ defmodule SAXMap do
   '''
   @spec from_string(xml :: String.t()) ::
           {:ok, map :: map()} | {:error, exception :: Saxy.ParseError.t()}
-  def from_string(xml, _opts \\ []) do
-    #ignore_attribute = Keyword.get(opts, :ignore_attribute, true)
-    #parse_from_string(xml, ignore_attribute)
-    Saxy.parse_string(xml, SAXMap.Handler, [])
+  def from_string(xml, opts \\ []) do
+    ignore_attribute = Keyword.get(opts, :ignore_attribute, true)
+    parse_from_string(xml, ignore_attribute)
   end
 
-  #defp parse_from_string(xml, true) do
-  #  Saxy.parse_string(xml, SAXMap.Handler, [])
-  #end
+  defp parse_from_string(xml, true) do
+    Saxy.parse_string(xml, SAXMap.Bench.Handler.V1.IgnoreAttribute, [])
+  end
+  defp parse_from_string(xml, false) do
+    parse_from_string(xml, {false, ""})
+  end
+  defp parse_from_string(xml, {false, prefix}) do
+    Saxy.parse_string(xml, SAXMap.Bench.Handler.V1.AppendAttribute, [attribute_naming_prefix: prefix])
+  end
 
 end

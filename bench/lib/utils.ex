@@ -1,4 +1,4 @@
-defmodule SAXMap.Utils do
+defmodule SAXMap.Bench.Utils do
   @moduledoc false
 
   def merge(maps) do

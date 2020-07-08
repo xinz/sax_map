@@ -17,8 +17,11 @@ xml = """
 
 Benchee.run(
   %{
-    "SAXMap.from_string" => fn -> SAXMap.from_string(xml, ignore_attribute: false) end,
-    "XmlToMap.naive_map" => fn -> XmlToMap.naive_map(xml) end,
+    #"SAXMap.V1.from_string" => fn -> SAXMap.V1.from_string(xml, ignore_attribute: false) end,
+    "Old SAXMap.from_string ignore attribute" => fn -> SAXMap.Bench.V1.from_string(xml) end,
+    "New SAXMap.from_string ignore attribute" => fn -> SAXMap.from_string(xml) end,
+    "Simple Parser with Saxy.SimpleForm ignore attribute" => fn -> SAXMap.Bench.SimpleFormParser.from_string(xml) end,
+    "XmlToMap.naive_map" => fn -> XmlToMap.naive_map(xml) end
   },
   time: 10,
   memory_time: 2
