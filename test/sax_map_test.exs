@@ -1,6 +1,8 @@
 defmodule SAXMapTest do
   use ExUnit.Case
 
+  @path Path.expand("./fixtures", __DIR__)
+
   test "empty xml" do
     xml = """
       <root></root>
@@ -119,6 +121,19 @@ defmodule SAXMapTest do
 
     {:error, %Saxy.ParseError{reason: reason}} = SAXMap.from_string(xml)
     assert reason == {:wrong_closing_tag, "item", "item2"}
+  end
+
+  test "from_stream" do
+    stream = File.stream!("#{@path}/test.xml")
+    {:ok, map} = SAXMap.from_stream(stream)
+    assert map == %{
+      "data" => %{
+        "groups" => %{"group" => ["gc1", "gc2", "gc3", "gc4"]},
+        "item1" => "item_value",
+        "item2" => "true",
+        "item3" => "in_child"
+      }
+    }
   end
 
   #test "process parent's attributes as the peer child nodes" do

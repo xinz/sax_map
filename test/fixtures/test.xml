@@ -1,0 +1,11 @@
+<data attr1="1" attr2="false" item3="in_attr">
+  <item1>item_value</item1>
+  <item2>true</item2>
+  <item3>in_child</item3>
+  <groups group_name="test">
+    <group attr="1">gc1</group>
+    <group attr="2">gc2</group>
+    <group attr="3">gc3</group>
+    <group attr="4">gc4</group>
+  </groups>
+</data>

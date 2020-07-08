@@ -94,4 +94,7 @@ defmodule SAXMap do
   #  Saxy.parse_string(xml, SAXMap.Handler, [])
   #end
 
+  def from_stream(stream, opts \\ []) do
+    Saxy.parse_stream(stream, SAXMap.Handler, [])
+  end
 end
