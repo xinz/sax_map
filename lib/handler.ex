@@ -18,6 +18,7 @@ defmodule SAXMap.Handler do
   def handle_event(:characters, "\n" <> _, state) do
     {:ok, state}
   end
+
   def handle_event(:characters, chars, state) do
     {stack, options} = state
     [{tag_name, _content} | stack] = stack
@@ -27,60 +28,57 @@ defmodule SAXMap.Handler do
     {:ok, {[current | stack], options}}
   end
 
-  def handle_event(:end_element, tag_name, state) do
-    {stack, options} = state
-    [{^tag_name, content} | stack] = stack
-
+  def handle_event(:end_element, tag_name, {[{tag_name, content} | []], options}) do
     current = {tag_name, content}
+    {:ok, {current, options}}
+  end
 
-    case stack do
-      [] ->
-        {:ok, {format(current), options}}
+  def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, nil} | rest]], options}) do
+    current = {tag_name, format_content(content)}
+    parent = {parent_tag_name, [current]}
+    {:ok, {[parent | rest], options}}
+  end
 
-      [parent | rest] ->
-        {parent_tag_name, parent_content} = parent
-        parent =
-          if parent_content == nil do
-            {parent_tag_name, [format(current)]}
-          else
-            {parent_tag_name, [format(current) | parent_content]}
-          end
-        {:ok, {[parent | rest], options}}
-    end
+  def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, parent_content} | rest]], options}) do
+    current = {tag_name, format_content(content)}
+    parent = {parent_tag_name, [current | parent_content]}
+    {:ok, {[parent | rest], options}}
   end
 
   def handle_event(:end_document, _, {{key, nil}, _opts}) do
     {:ok, %{key => %{}}}
   end
+
   def handle_event(:end_document, _, {{key, value}, _opts}) do
-    {:ok, %{key => value}}
+    {:ok, %{key => format_content(value)}}
   end
+
   def handle_event(:end_document, _, {map, _opts}) when is_map(map) do
     {:ok, map}
   end
 
-  defp format({parent_key, child_nodes}) when is_list(child_nodes) do
-    map =
-      Enum.reduce(child_nodes, %{}, fn(node, acc) ->
-        case node do
-          {_key, _value} ->
-            map_put_value_or_keep_as_list(node, acc)
-          node when is_map(node) ->
-            Enum.reduce(node, acc, &map_put_value_or_keep_as_list/2)
-        end
-      end)
-    %{parent_key => map}
+  defp format_content(items) when is_list(items) do
+    list_to_map(items, %{})
   end
-  defp format({key, value}) do
-    {key, value}
+  defp format_content(item) do
+    item
   end
 
-  defp map_put_value_or_keep_as_list({key, value}, acc) do
-    if Map.has_key?(acc, key) do
-      Map.put(acc, key, List.flatten([value | [acc[key]]]))
-    else
-      Map.put(acc, key, value)
-    end
+  defp list_to_map([], prepared) do
+    prepared
+  end
+  defp list_to_map([{key, value} | rest], prepared) do
+    current_value = Map.get(prepared, key)
+    prepared =
+      cond do
+        current_value == nil ->
+          Map.put(prepared, key, value)
+        is_list(current_value) ->
+          Map.put(prepared, key, [value | current_value])
+        true ->
+          Map.put(prepared, key, [value, current_value])
+      end
+    list_to_map(rest, prepared)
   end
 
 end
