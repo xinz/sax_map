@@ -1,6 +1,6 @@
 # SAXMap
 
-[![hex.pm version](https://img.shields.io/hexpm/v/sax_map.svg)](https://hex.pm/packages/sax_map)
+[![hex.pm version](https://img.shields.io/hexpm/v/sax_map.svg?v=1)](https://hex.pm/packages/sax_map)
 
 Converts an XML String or an XML file stream to a Map.
 
