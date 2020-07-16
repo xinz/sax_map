@@ -3,58 +3,120 @@ defmodule SAXMap.Handler do
 
   @behaviour Saxy.Handler
 
-  def handle_event(:start_document, _prolog, _state) do
-    {:ok, {[], []}}
+  def handle_event(:start_document, _prolog, opts) do
+    {:ok, {[], Map.new(opts)}}
   end
 
-  def handle_event(:start_element, {tag_name, _attributes}, state) do
-    {stack, options} = state
-    #tag = {tag_name, attributes, nil}
+  def handle_event(:start_element, {tag_name, _attributes}, {stack, %{ignore_attribute: true} = options}) do
     tag = {tag_name, nil}
 
     {:ok, {[tag | stack], options}}
   end
+  def handle_event(:start_element, {tag_name, attributes}, {stack, %{ignore_attribute: false} = options}) do
+    tag = {tag_name, attributes, nil}
+
+    {:ok, {[tag | stack], options}}
+  end
+  def handle_event(:start_element, {tag_name, attributes}, {stack, %{ignore_attribute: {false, attribute_prefix}} = options}) do
+    attributes = Enum.map(attributes, fn({key, value}) ->
+      {"#{attribute_prefix}#{key}", value}
+    end)
+    tag = {tag_name, attributes, nil}
+    {:ok, {[tag | stack], options}}
+  end
+
 
   def handle_event(:characters, "\n" <> _, state) do
     {:ok, state}
   end
 
-  def handle_event(:characters, chars, state) do
-    {stack, options} = state
+  def handle_event(:characters, chars, {stack, %{ignore_attribute: true} = options}) do
     [{tag_name, _content} | stack] = stack
-
     current = {tag_name, chars}
-
+    {:ok, {[current | stack], options}}
+  end
+  def handle_event(:characters, chars, {stack, %{ignore_attribute: false} = options}) do
+    [{tag_name, attributes, _content} | stack] = stack
+    current = {tag_name, attributes, chars}
+    {:ok, {[current | stack], options}}
+  end
+  def handle_event(:characters, chars, {stack, %{ignore_attribute: {false, _attribute_prefix}} = options}) do
+    [{tag_name, attributes, _content} | stack] = stack
+    current = {tag_name, attributes, chars}
     {:ok, {[current | stack], options}}
   end
 
-  def handle_event(:end_element, tag_name, {[{tag_name, content} | []], options}) do
+  def handle_event(:end_element, tag_name, {[{tag_name, content} | []], %{ignore_attribute: true} = options}) do
     current = {tag_name, content}
     {:ok, {current, options}}
   end
+  def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | []], %{ignore_attribute: false} = options}) do
+    current = {tag_name, attributes, content}
+    {:ok, {current, options}}
+  end
+  def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | []], %{ignore_attribute: {false, _attribute_prefix}} = options}) do
+    current = {tag_name, attributes, content}
+    {:ok, {current, options}}
+  end
 
-  def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, nil} | rest]], options}) do
+  def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, nil} | rest]], %{ignore_attribute: true} = options}) do
     current = {tag_name, format_content(content)}
     parent = {parent_tag_name, [current]}
     {:ok, {[parent | rest], options}}
   end
+  def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, nil} | rest]], %{ignore_attribute: false} = options}) do
+    formated_content = format_content(content)
+    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    parent = {parent_tag_name, parent_attributes, [current]}
+    {:ok, {[parent | rest], options}}
+  end
+  def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, nil} | rest]], %{ignore_attribute: {false, _attribute_prefix}} = options}) do
+    formated_content = format_content(content)
+    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    parent = {parent_tag_name, parent_attributes, [current]}
+    {:ok, {[parent | rest], options}}
+  end
 
-  def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, parent_content} | rest]], options}) do
+  def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, parent_content} | rest]], %{ignore_attribute: true} = options}) do
     current = {tag_name, format_content(content)}
     parent = {parent_tag_name, [current | parent_content]}
     {:ok, {[parent | rest], options}}
   end
 
-  def handle_event(:end_document, _, {{key, nil}, _opts}) do
+  def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, parent_content} | rest]], %{ignore_attribute: false} = options}) do
+    formated_content = format_content(content)
+    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    parent = {parent_tag_name, parent_attributes, [current | parent_content]}
+    {:ok, {[parent | rest], options}}
+  end
+
+  def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, parent_content} | rest]], %{ignore_attribute: {false, _attribute_prefix}} = options}) do
+    formated_content = format_content(content)
+    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    parent = {parent_tag_name, parent_attributes, [current | parent_content]}
+    {:ok, {[parent | rest], options}}
+  end
+
+  def handle_event(:end_document, _, {{key, nil}, %{ignore_attribute: true}}) do
     {:ok, %{key => %{}}}
   end
-
-  def handle_event(:end_document, _, {{key, value}, _opts}) do
-    {:ok, %{key => format_content(value)}}
+  def handle_event(:end_document, _, {{key, attributes, nil}, %{ignore_attribute: false}}) do
+    {:ok, %{key => format_content(attributes)}}
+  end
+  def handle_event(:end_document, _, {{key, attributes, nil}, %{ignore_attribute: {false, _attribute_prefix}}}) do
+    {:ok, %{key => format_content(attributes)}}
   end
 
-  def handle_event(:end_document, _, {map, _opts}) when is_map(map) do
-    {:ok, map}
+  def handle_event(:end_document, _, {{key, value}, %{ignore_attribute: true}}) do
+    {:ok, %{key => format_content(value)}}
+  end
+  def handle_event(:end_document, _, {{key, attributes, value}, %{ignore_attribute: false}}) do
+    content = format_content(attributes) |> Map.put("content", format_content(value))
+    {:ok, %{key => content}}
+  end
+  def handle_event(:end_document, _, {{key, attributes, value}, %{ignore_attribute: {false, _attribute_prefix}}}) do
+    content = format_content(attributes) |> Map.put("content", format_content(value))
+    {:ok, %{key => content}}
   end
 
   defp format_content(items) when is_list(items) do
@@ -67,18 +129,26 @@ defmodule SAXMap.Handler do
   defp list_to_map([], prepared) do
     prepared
   end
+  defp list_to_map([item | rest], prepared) when is_map(item) do
+    [{key, value}] = Map.to_list(item)
+    current_value = Map.get(prepared, key)
+    prepared = put_or_concat_to_map(current_value, prepared, key, value)
+    list_to_map(rest, prepared)
+  end
   defp list_to_map([{key, value} | rest], prepared) do
     current_value = Map.get(prepared, key)
-    prepared =
-      cond do
-        current_value == nil ->
-          Map.put(prepared, key, value)
-        is_list(current_value) ->
-          Map.put(prepared, key, [value | current_value])
-        true ->
-          Map.put(prepared, key, [value, current_value])
-      end
+    prepared = put_or_concat_to_map(current_value, prepared, key, value)
     list_to_map(rest, prepared)
+  end
+
+  defp put_or_concat_to_map(nil, map, key, value) do
+    Map.put(map, key, value)
+  end
+  defp put_or_concat_to_map(current_value, map, key, value) when is_list(current_value) do
+    Map.put(map, key, [value | current_value])
+  end
+  defp put_or_concat_to_map(current_value, map, key, value) do
+    Map.put(map, key, [value, current_value])
   end
 
 end

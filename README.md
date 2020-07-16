@@ -2,7 +2,7 @@
 
 [![hex.pm version](https://img.shields.io/hexpm/v/sax_map.svg)](https://hex.pm/packages/sax_map)
 
-Converts an XML String to a Map.
+Converts an XML String or an XML file stream to a Map.
 
 Benefit from [Saxy](https://hex.pm/packages/saxy)'s SAX mode, this library has a good conversion efficiency.
 
@@ -11,7 +11,7 @@ Benefit from [Saxy](https://hex.pm/packages/saxy)'s SAX mode, this library has a
 ```elixir
 def deps do
   [
-    {:sax_map, "~> 0.2"}
+    {:sax_map, "~> 1.0"}
   ]
 end
 ```
@@ -41,48 +41,61 @@ By default `SAXMap.from_string` will ignore all attributes of elements in the re
 
 ```
 xml = """
-  <data attr1="1" attr2="false" item3="override">
-    <item1>item_value1</item1>
-    <item2>item_value2</item2>
-    <item3>item_value3</item3>
-    <groups>
-      <group attr="1">a</group>
-      <group attr="2">b</group>
-    </groups>
-  </data>
+  <thread version="1">
+    <title color="red" font="16">Hello</title>
+    <items size="3">
+      <item font="12">item1</item>
+      <item font="12">item2</item>
+      <item font="12">item3</item>
+    </items>
+  </thread>
 """
 
 SAXMap.from_string(xml, ignore_attribute: false)
 
 {:ok,
   %{
-    "data" => %{
-      "attr1" => "1",
-      "attr2" => "false",
-      "groups" => %{"attr" => ["1", "2"], "group" => ["a", "b"]},
-      "item1" => "item_value1",
-      "item2" => "item_value2",
-      "item3" => "item_value3"
+    "thread" => %{
+      "content" => %{
+        "items" => %{
+          "content" => %{
+            "item" => [
+              %{"content" => "item1", "font" => "12"},
+              %{"content" => "item2", "font" => "12"},
+              %{"content" => "item3", "font" => "12"}
+            ]
+          },
+          "size" => "3"
+        },
+        "title" => %{"color" => "red", "content" => "Hello", "font" => "16"}
+      },
+      "version" => "1"
     }
   }}
 
 SAXMap.from_string(xml, ignore_attribute: {false, "@"})
-
 {:ok,
   %{
-    "data" => %{
-      "@attr1" => "1",
-      "@attr2" => "false",
-      "@item3" => "override",
-      "groups" => %{"@attr" => ["1", "2"], "group" => ["a", "b"]},
-      "item1" => "item_value1",
-      "item2" => "item_value2",
-      "item3" => "item_value3"
+    "thread" => %{
+      "@version" => "1",
+      "content" => %{
+        "items" => %{
+          "@size" => "3",
+          "content" => %{
+            "item" => [
+              %{"@font" => "12", "content" => "item1"},
+              %{"@font" => "12", "content" => "item2"},
+              %{"@font" => "12", "content" => "item3"}
+            ]
+          }
+        },
+        "title" => %{"@color" => "red", "@font" => "16", "content" => "Hello"}
+      }
     }
   }}
 ```
 
-**Notice**: The `ignore_attribute: false` equals `ignore_attribute: {false, ""}`, if the naming of attribute has the same name with the child element in a peer, there will use child element's value to override this naming key.
+**Notice**: The `ignore_attribute: false` equals `ignore_attribute: {false, ""}`, in this case, the child elements will be automatically naming with "content" as the key of the key-value pair to distinct this key-value pair is from content or attribute.
 
 ## Benchmark
 
@@ -102,24 +115,28 @@ time: 10 s
 memory time: 2 s
 parallel: 1
 inputs: none specified
-Estimated total run time: 28 s
+Estimated total run time: 42 s
 
-Benchmarking SAXMap.from_string...
+Benchmarking SAXMap.from_string ignore attribute...
+Benchmarking SAXMap.from_string with attribute...
 Benchmarking XmlToMap.naive_map...
 
-Name                         ips        average  deviation         median         99th %
-SAXMap.from_string       25.70 K       38.91 μs    ±28.84%          36 μs          91 μs
-XmlToMap.naive_map       14.39 K       69.48 μs    ±21.32%          66 μs         143 μs
+Name                                          ips        average  deviation         median         99th %
+SAXMap.from_string ignore attribute       42.42 K       23.57 μs    ±28.32%          23 μs          43 μs
+SAXMap.from_string with attribute         38.51 K       25.96 μs    ±27.96%          25 μs          47 μs
+XmlToMap.naive_map                        15.25 K       65.58 μs    ±13.78%          63 μs          95 μs
 
 Comparison:
-SAXMap.from_string       25.70 K
-XmlToMap.naive_map       14.39 K - 1.79x slower +30.57 μs
+SAXMap.from_string ignore attribute       42.42 K
+SAXMap.from_string with attribute         38.51 K - 1.10x slower +2.39 μs
+XmlToMap.naive_map                        15.25 K - 2.78x slower +42.00 μs
 
 Memory usage statistics:
 
-Name                  Memory usage
-SAXMap.from_string        18.40 KB
-XmlToMap.naive_map        39.96 KB - 2.17x memory usage +21.56 KB
+Name                                   Memory usage
+SAXMap.from_string ignore attribute        12.34 KB
+SAXMap.from_string with attribute          14.42 KB - 1.17x memory usage +2.08 KB
+XmlToMap.naive_map                         39.96 KB - 3.24x memory usage +27.62 KB
 
 **All measurements for memory usage were the same**
 ```
