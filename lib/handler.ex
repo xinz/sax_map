@@ -60,39 +60,39 @@ defmodule SAXMap.Handler do
   end
 
   def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, nil} | rest]], %{ignore_attribute: true} = options}) do
-    current = {tag_name, format_content(content)}
+    current = {tag_name, format_key_value_pairs(content)}
     parent = {parent_tag_name, [current]}
     {:ok, {[parent | rest], options}}
   end
   def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, nil} | rest]], %{ignore_attribute: false} = options}) do
-    formated_content = format_content(content)
-    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    formated_content = format_key_value_pairs(content)
+    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current]}
     {:ok, {[parent | rest], options}}
   end
   def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, nil} | rest]], %{ignore_attribute: {false, _attribute_prefix}} = options}) do
-    formated_content = format_content(content)
-    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    formated_content = format_key_value_pairs(content)
+    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current]}
     {:ok, {[parent | rest], options}}
   end
 
   def handle_event(:end_element, tag_name, {[{tag_name, content} | [{parent_tag_name, parent_content} | rest]], %{ignore_attribute: true} = options}) do
-    current = {tag_name, format_content(content)}
+    current = {tag_name, format_key_value_pairs(content)}
     parent = {parent_tag_name, [current | parent_content]}
     {:ok, {[parent | rest], options}}
   end
 
   def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, parent_content} | rest]], %{ignore_attribute: false} = options}) do
-    formated_content = format_content(content)
-    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    formated_content = format_key_value_pairs(content)
+    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current | parent_content]}
     {:ok, {[parent | rest], options}}
   end
 
   def handle_event(:end_element, tag_name, {[{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, parent_content} | rest]], %{ignore_attribute: {false, _attribute_prefix}} = options}) do
-    formated_content = format_content(content)
-    current = %{tag_name => format_content([{"content", formated_content} | attributes])}
+    formated_content = format_key_value_pairs(content)
+    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current | parent_content]}
     {:ok, {[parent | rest], options}}
   end
@@ -101,28 +101,28 @@ defmodule SAXMap.Handler do
     {:ok, %{key => %{}}}
   end
   def handle_event(:end_document, _, {{key, attributes, nil}, %{ignore_attribute: false}}) do
-    {:ok, %{key => format_content(attributes)}}
+    {:ok, %{key => format_key_value_pairs(attributes)}}
   end
   def handle_event(:end_document, _, {{key, attributes, nil}, %{ignore_attribute: {false, _attribute_prefix}}}) do
-    {:ok, %{key => format_content(attributes)}}
+    {:ok, %{key => format_key_value_pairs(attributes)}}
   end
 
   def handle_event(:end_document, _, {{key, value}, %{ignore_attribute: true}}) do
-    {:ok, %{key => format_content(value)}}
+    {:ok, %{key => format_key_value_pairs(value)}}
   end
   def handle_event(:end_document, _, {{key, attributes, value}, %{ignore_attribute: false}}) do
-    content = format_content(attributes) |> Map.put("content", format_content(value))
+    content = format_key_value_pairs(attributes) |> Map.put("content", format_key_value_pairs(value))
     {:ok, %{key => content}}
   end
   def handle_event(:end_document, _, {{key, attributes, value}, %{ignore_attribute: {false, _attribute_prefix}}}) do
-    content = format_content(attributes) |> Map.put("content", format_content(value))
+    content = format_key_value_pairs(attributes) |> Map.put("content", format_key_value_pairs(value))
     {:ok, %{key => content}}
   end
 
-  defp format_content(items) when is_list(items) do
+  defp format_key_value_pairs(items) when is_list(items) do
     list_to_map(items, %{})
   end
-  defp format_content(item) do
+  defp format_key_value_pairs(item) do
     item
   end
 
