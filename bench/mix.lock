@@ -3,5 +3,5 @@
   "deep_merge": {:hex, :deep_merge, "1.0.0", "b4aa1a0d1acac393bdf38b2291af38cb1d4a52806cf7a4906f718e1feb5ee961", [:mix], [], "hexpm", "ce708e5f094b9cd4e8f2be4f00d2f4250c4095be93f8cd6d018c753894885430"},
   "elixir_xml_to_map": {:hex, :elixir_xml_to_map, "1.0.1", "8eaac89644e033f472e19f66a88288a3e36a621cf695a7fd323a1dc481b15c15", [:mix], [{:erlsom, "~>1.4", [hex: :erlsom, repo: "hexpm", optional: false]}], "hexpm", "630e61fc23496c0981e6e605f5505bd477d29c2449d929453e1a762aa364fa99"},
   "erlsom": {:hex, :erlsom, "1.5.0", "c5a5cdd0ee0e8dca62bcc4b13ff08da24fdefc16ccd8b25282a2fda2ba1be24a", [:rebar3], [], "hexpm", "55a9dbf9cfa77fcfc108bd8e2c4f9f784dea228a8f4b06ea10b684944946955a"},
-  "saxy": {:hex, :saxy, "1.2.0", "da3401bf472d0a1f4b04fd138ff63f3d9055b5e5209cd4a150e01819962c6348", [:mix], [], "hexpm", "c0fe73e8d6328c8a8c8dc1ea432592d52648a0e0e18918385a92bc10dc269790"},
+  "saxy": {:hex, :saxy, "1.3.0", "61b52697a3235be68ce6f8ecc2c7032f3c01184b14d142a7d09270019e32fbf9", [:mix], [], "hexpm", "c9770a08c168be95c8d8249a9051dd5522641941ec1d9cb843e7d12dc101b6d2"},
 }
