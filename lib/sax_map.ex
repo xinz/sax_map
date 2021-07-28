@@ -107,13 +107,15 @@ defmodule SAXMap do
   end
 
   defp parse_from_string(xml, true) do
-    Saxy.parse_string(xml, SAXMap.Handler, [ignore_attribute: true])
+    Saxy.parse_string(xml, SAXMap.Handler, ignore_attribute: true)
   end
+
   defp parse_from_string(xml, false) do
-    Saxy.parse_string(xml, SAXMap.Handler, [ignore_attribute: false])
+    Saxy.parse_string(xml, SAXMap.Handler, ignore_attribute: false)
   end
+
   defp parse_from_string(xml, {false, attribute_prefix}) do
-    Saxy.parse_string(xml, SAXMap.Handler, [ignore_attribute: {false, attribute_prefix}])
+    Saxy.parse_string(xml, SAXMap.Handler, ignore_attribute: {false, attribute_prefix})
   end
 
   @doc ~S'''
@@ -130,12 +132,14 @@ defmodule SAXMap do
   end
 
   defp parse_from_stream(stream, true) do
-    Saxy.parse_stream(stream, SAXMap.Handler, [ignore_attribute: true])
+    Saxy.parse_stream(stream, SAXMap.Handler, ignore_attribute: true)
   end
+
   defp parse_from_stream(stream, false) do
-    Saxy.parse_stream(stream, SAXMap.Handler, [ignore_attribute: false])
+    Saxy.parse_stream(stream, SAXMap.Handler, ignore_attribute: false)
   end
+
   defp parse_from_stream(stream, {false, attribute_prefix}) do
-    Saxy.parse_stream(stream, SAXMap.Handler, [ignore_attribute: {false, attribute_prefix}])
+    Saxy.parse_stream(stream, SAXMap.Handler, ignore_attribute: {false, attribute_prefix})
   end
 end

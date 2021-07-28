@@ -46,7 +46,7 @@ defmodule SaxMap.MixProject do
       main: "readme",
       formatter_opts: [gfm: true],
       extras: [
-       "README.md"
+        "README.md"
       ]
     ]
   end

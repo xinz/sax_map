@@ -60,13 +60,13 @@ defmodule SAXMapTest do
     {:ok, map} = SAXMap.from_string(xml)
 
     assert map == %{
-      "Request" => %{
-        "Body" => "test content!",
-        "Header" => "Hi",
-        "a" => ["1", %{"test" => [%{"test1" => ["1", "2"]}, "2"]}],
-        "b" => "100"
-      }
-    }
+             "Request" => %{
+               "Body" => "test content!",
+               "Header" => "Hi",
+               "a" => ["1", %{"test" => [%{"test1" => ["1", "2"]}, "2"]}],
+               "b" => "100"
+             }
+           }
   end
 
   test "keep order of peer nodes" do
@@ -126,14 +126,15 @@ defmodule SAXMapTest do
   test "from_stream" do
     stream = File.stream!("#{@path}/test.xml")
     {:ok, map} = SAXMap.from_stream(stream)
+
     assert map == %{
-      "data" => %{
-        "groups" => %{"group" => ["gc1", "gc2", "gc3", "gc4"]},
-        "item1" => "item_value",
-        "item2" => "true",
-        "item3" => "in_child"
-      }
-    }
+             "data" => %{
+               "groups" => %{"group" => ["gc1", "gc2", "gc3", "gc4"]},
+               "item1" => "item_value",
+               "item2" => "true",
+               "item3" => "in_child"
+             }
+           }
   end
 
   test "process parent's attributes as the peer child nodes" do
@@ -156,46 +157,47 @@ defmodule SAXMapTest do
     """
 
     {:ok, map} = SAXMap.from_string(xml)
+
     assert map == %{
-      "root" => %{
-        "a" => %{
-          "b" => "b2",
-          "c" => "1",
-          "d" => "test",
-          "items" => %{"item" => ["1", "2", "3", "4"]}
-        },
-        "b" => "test",
-        "name" => "testname"
-      }
-    }
+             "root" => %{
+               "a" => %{
+                 "b" => "b2",
+                 "c" => "1",
+                 "d" => "test",
+                 "items" => %{"item" => ["1", "2", "3", "4"]}
+               },
+               "b" => "test",
+               "name" => "testname"
+             }
+           }
 
     {:ok, map} = SAXMap.from_string(xml, ignore_attribute: false)
 
     assert map == %{
-      "root" => %{
-        "content" => %{
-          "a" => %{
-            "content" => %{
-              "b" => %{"attr" => "1", "content" => "b2"},
-              "c" => %{"content" => "1"},
-              "d" => %{"content" => "test"},
-              "items" => %{
-                "content" => %{
-                  "item" => [
-                    %{"attr" => "a", "content" => "1"},
-                    %{"attr" => "b", "content" => "2"},
-                    %{"attr" => "c", "content" => "3"},
-                    %{"attr" => "d", "content" => "4"}
-                  ]
-                }
-              }
-            }
-          },
-          "b" => %{"content" => "test"},
-          "name" => %{"content" => "testname", "flag" => "false"}
-        }
-      }
-    }
+             "root" => %{
+               "content" => %{
+                 "a" => %{
+                   "content" => %{
+                     "b" => %{"attr" => "1", "content" => "b2"},
+                     "c" => %{"content" => "1"},
+                     "d" => %{"content" => "test"},
+                     "items" => %{
+                       "content" => %{
+                         "item" => [
+                           %{"attr" => "a", "content" => "1"},
+                           %{"attr" => "b", "content" => "2"},
+                           %{"attr" => "c", "content" => "3"},
+                           %{"attr" => "d", "content" => "4"}
+                         ]
+                       }
+                     }
+                   }
+                 },
+                 "b" => %{"content" => "test"},
+                 "name" => %{"content" => "testname", "flag" => "false"}
+               }
+             }
+           }
 
     xml = """
       <data attr1="1" attr2="false" item3="in_attr">
@@ -212,33 +214,35 @@ defmodule SAXMapTest do
     """
 
     {:ok, map} = SAXMap.from_string(xml, ignore_attribute: false)
+
     assert map == %{
-      "data" => %{
-        "attr1" => "1",
-        "attr2" => "false",
-        "item3" => "in_attr",
-        "content" => %{
-          "groups" => %{
-            "content" => %{
-              "group" => [
-                %{"attr" => "1", "content" => "gc1"},
-                %{"attr" => "2", "content" => "gc2"},
-                %{"attr" => "3", "content" => "gc3"},
-                %{"attr" => "4", "content" => "gc4"}
-              ]
-            },
-            "group_name" => "test"
-          },
-          "item1" => %{"content" => "item_value"},
-          "item2" => %{"content" => "true"},
-          "item3" => %{"content" => "in_child"}
-        }
-      }
-    }
+             "data" => %{
+               "attr1" => "1",
+               "attr2" => "false",
+               "item3" => "in_attr",
+               "content" => %{
+                 "groups" => %{
+                   "content" => %{
+                     "group" => [
+                       %{"attr" => "1", "content" => "gc1"},
+                       %{"attr" => "2", "content" => "gc2"},
+                       %{"attr" => "3", "content" => "gc3"},
+                       %{"attr" => "4", "content" => "gc4"}
+                     ]
+                   },
+                   "group_name" => "test"
+                 },
+                 "item1" => %{"content" => "item_value"},
+                 "item2" => %{"content" => "true"},
+                 "item3" => %{"content" => "in_child"}
+               }
+             }
+           }
 
     xml = """
       <xml attr="1">Test</xml>
     """
+
     {:ok, map} = SAXMap.from_string(xml, ignore_attribute: false)
     assert map == %{"xml" => %{"content" => "Test", "attr" => "1"}}
   end
@@ -259,61 +263,63 @@ defmodule SAXMapTest do
     """
 
     {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, "@"})
+
     assert map == %{
-      "data" => %{
-        "@attr1" => "1",
-        "@attr2" => "false",
-        "@item3" => "in_attr",
-        "content" => %{
-          "groups" => %{
-            "@group_name" => "test",
-            "content" => %{
-              "group" => [
-                %{"@attr" => "1", "content" => "gc1"},
-                %{"@attr" => "2", "content" => "gc2"},
-                %{"@attr" => "3", "content" => "gc3"},
-                %{"@attr" => "4", "content" => "gc4"}
-              ]
-            }
-          },
-          "item1" => %{"content" => "item_value"},
-          "item2" => %{"content" => "true"},
-          "item3" => %{"content" => "in_child"}
-        }
-      }
-    }
+             "data" => %{
+               "@attr1" => "1",
+               "@attr2" => "false",
+               "@item3" => "in_attr",
+               "content" => %{
+                 "groups" => %{
+                   "@group_name" => "test",
+                   "content" => %{
+                     "group" => [
+                       %{"@attr" => "1", "content" => "gc1"},
+                       %{"@attr" => "2", "content" => "gc2"},
+                       %{"@attr" => "3", "content" => "gc3"},
+                       %{"@attr" => "4", "content" => "gc4"}
+                     ]
+                   }
+                 },
+                 "item1" => %{"content" => "item_value"},
+                 "item2" => %{"content" => "true"},
+                 "item3" => %{"content" => "in_child"}
+               }
+             }
+           }
 
     {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, ""})
+
     assert map == %{
-      "data" => %{
-        "attr1" => "1",
-        "attr2" => "false",
-        "item3" => "in_attr",
-        "content" => %{
-          "groups" => %{
-            "group_name" => "test",
-            "content" => %{
-              "group" => [
-                %{"attr" => "1", "content" => "gc1"},
-                %{"attr" => "2", "content" => "gc2"},
-                %{"attr" => "3", "content" => "gc3"},
-                %{"attr" => "4", "content" => "gc4"}
-              ]
-            }
-          },
-          "item1" => %{"content" => "item_value"},
-          "item2" => %{"content" => "true"},
-          "item3" => %{"content" => "in_child"}
-        }
-      }
-    }
+             "data" => %{
+               "attr1" => "1",
+               "attr2" => "false",
+               "item3" => "in_attr",
+               "content" => %{
+                 "groups" => %{
+                   "group_name" => "test",
+                   "content" => %{
+                     "group" => [
+                       %{"attr" => "1", "content" => "gc1"},
+                       %{"attr" => "2", "content" => "gc2"},
+                       %{"attr" => "3", "content" => "gc3"},
+                       %{"attr" => "4", "content" => "gc4"}
+                     ]
+                   }
+                 },
+                 "item1" => %{"content" => "item_value"},
+                 "item2" => %{"content" => "true"},
+                 "item3" => %{"content" => "in_child"}
+               }
+             }
+           }
 
     xml = """
       <xml attr="1">Test</xml>
     """
+
     {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, "-"})
 
     assert map == %{"xml" => %{"content" => "Test", "-attr" => "1"}}
   end
-
 end
