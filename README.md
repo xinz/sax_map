@@ -101,13 +101,21 @@ SAXMap.from_string(xml, ignore_attribute: {false, "@"})
 
 Only for your reference, all of credit belong to [Saxy](https://hex.pm/packages/saxy), the details of benchmark can be found in the `bench` directory of the repository.
 
+Run:
+
+```bash
+mix run xml_to_map.exs
+```
+
+Output:
+
 ```bash
 Operating System: macOS
 CPU Information: Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz
 Number of Available Cores: 16
 Available memory: 32 GB
-Elixir 1.10.3
-Erlang 22.3.4.2
+Elixir 1.12.2
+Erlang 24.0.4
 
 Benchmark suite executing with the following configuration:
 warmup: 2 s
@@ -122,21 +130,21 @@ Benchmarking SAXMap.from_string with attribute...
 Benchmarking XmlToMap.naive_map...
 
 Name                                          ips        average  deviation         median         99th %
-SAXMap.from_string ignore attribute       42.42 K       23.57 μs    ±28.32%          23 μs          43 μs
-SAXMap.from_string with attribute         38.51 K       25.96 μs    ±27.96%          25 μs          47 μs
-XmlToMap.naive_map                        15.25 K       65.58 μs    ±13.78%          63 μs          95 μs
+SAXMap.from_string ignore attribute      105.03 K        9.52 μs   ±129.42%           9 μs          33 μs
+SAXMap.from_string with attribute         96.74 K       10.34 μs   ±110.08%           9 μs          35 μs
+XmlToMap.naive_map                        26.31 K       38.01 μs    ±46.21%          33 μs         105 μs
 
 Comparison:
-SAXMap.from_string ignore attribute       42.42 K
-SAXMap.from_string with attribute         38.51 K - 1.10x slower +2.39 μs
-XmlToMap.naive_map                        15.25 K - 2.78x slower +42.00 μs
+SAXMap.from_string ignore attribute      105.03 K
+SAXMap.from_string with attribute         96.74 K - 1.09x slower +0.82 μs
+XmlToMap.naive_map                        26.31 K - 3.99x slower +28.49 μs
 
 Memory usage statistics:
 
 Name                                   Memory usage
-SAXMap.from_string ignore attribute        12.34 KB
-SAXMap.from_string with attribute          14.42 KB - 1.17x memory usage +2.08 KB
-XmlToMap.naive_map                         39.96 KB - 3.24x memory usage +27.62 KB
+SAXMap.from_string ignore attribute        14.61 KB
+SAXMap.from_string with attribute          16.69 KB - 1.14x memory usage +2.08 KB
+XmlToMap.naive_map                         40.90 KB - 2.80x memory usage +26.29 KB
 
 **All measurements for memory usage were the same**
 ```
