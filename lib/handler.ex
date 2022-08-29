@@ -41,6 +41,10 @@ defmodule SAXMap.Handler do
     {:ok, {[tag | stack], options}}
   end
 
+  def handle_event(:characters, "\r" <> _, state) do
+    {:ok, state}
+  end
+
   def handle_event(:characters, "\n" <> _, state) do
     {:ok, state}
   end

@@ -322,4 +322,17 @@ defmodule SAXMapTest do
 
     assert map == %{"xml" => %{"content" => "Test", "-attr" => "1"}}
   end
+
+
+  test "ignore xml content with CRLF-terminated" do
+    xml = """
+      <data><title>test</title>\r\n</data>
+    """
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map == %{"data" => %{"title" => "test"}}
+
+    xml = ~s"<mediawiki xml:lang=\"en\">\r\n  <page>\r\n    <title>Page title</title>\r\n    <revision>\r\n      <text>A bunch of [[text]] here.</text>\r\n    </revision>\r\n    <revision>\r\n      <text>An earlier [[revision]].</text>\r\n    </revision>\r\n  </page>\r\n</mediawiki>\r\n"
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map["mediawiki"]["page"]["title"] == "Page title"
+  end
 end
