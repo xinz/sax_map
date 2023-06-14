@@ -41,34 +41,14 @@ defmodule SAXMap.Handler do
     {:ok, {[tag | stack], options}}
   end
 
-  def handle_event(:characters, "\r" <> _, state) do
-    {:ok, state}
-  end
+  def handle_event(:characters, chars, state) do
+    case String.trim_leading(chars) do
+      "" ->
+        {:ok, state}
 
-  def handle_event(:characters, "\n" <> _, state) do
-    {:ok, state}
-  end
-
-  def handle_event(:characters, chars, {stack, %{ignore_attribute: true} = options}) do
-    [{tag_name, _content} | stack] = stack
-    current = {tag_name, chars}
-    {:ok, {[current | stack], options}}
-  end
-
-  def handle_event(:characters, chars, {stack, %{ignore_attribute: false} = options}) do
-    [{tag_name, attributes, _content} | stack] = stack
-    current = {tag_name, attributes, chars}
-    {:ok, {[current | stack], options}}
-  end
-
-  def handle_event(
-        :characters,
-        chars,
-        {stack, %{ignore_attribute: {false, _attribute_prefix}} = options}
-      ) do
-    [{tag_name, attributes, _content} | stack] = stack
-    current = {tag_name, attributes, chars}
-    {:ok, {[current | stack], options}}
+      _ ->
+        do_handle_characters(chars, state)
+    end
   end
 
   def handle_event(
@@ -209,6 +189,27 @@ defmodule SAXMap.Handler do
       format_key_value_pairs(attributes) |> Map.put("content", format_key_value_pairs(value))
 
     {:ok, %{key => content}}
+  end
+
+  def do_handle_characters(chars, {stack, %{ignore_attribute: true} = options}) do
+    [{tag_name, _content} | stack] = stack
+    current = {tag_name, chars}
+    {:ok, {[current | stack], options}}
+  end
+
+  def do_handle_characters(chars, {stack, %{ignore_attribute: false} = options}) do
+    [{tag_name, attributes, _content} | stack] = stack
+    current = {tag_name, attributes, chars}
+    {:ok, {[current | stack], options}}
+  end
+
+  def do_handle_characters(
+        chars,
+        {stack, %{ignore_attribute: {false, _attribute_prefix}} = options}
+      ) do
+    [{tag_name, attributes, _content} | stack] = stack
+    current = {tag_name, attributes, chars}
+    {:ok, {[current | stack], options}}
   end
 
   defp format_key_value_pairs(items) when is_list(items) do
