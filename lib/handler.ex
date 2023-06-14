@@ -41,6 +41,11 @@ defmodule SAXMap.Handler do
     {:ok, {[tag | stack], options}}
   end
 
+  def handle_event(:cdata, cdata, {[{tag_name, _} | stack], options}) do
+    current = {tag_name, cdata}
+    {:ok, {[current | stack], options}}
+  end
+
   def handle_event(:characters, "\r" <> _, state) do
     {:ok, state}
   end
@@ -210,6 +215,8 @@ defmodule SAXMap.Handler do
 
     {:ok, %{key => content}}
   end
+
+
 
   defp format_key_value_pairs(items) when is_list(items) do
     list_to_map(items, %{})
