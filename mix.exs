@@ -23,7 +23,7 @@ defmodule SaxMap.MixProject do
 
   defp deps do
     [
-      {:saxy, "~> 1.0"},
+      {:saxy, "~> 1.3"},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false}
     ]
   end

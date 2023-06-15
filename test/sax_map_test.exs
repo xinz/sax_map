@@ -93,7 +93,7 @@ hello]]></Body>
   test "keep order of peer nodes" do
     xml = """
       <data>
-        <attribute>A0</attribute>
+            <attribute>A0</attribute>
         <items>
           <item>1</item>
           <item>2</item>
@@ -356,4 +356,40 @@ hello]]></Body>
     {:ok, map} = SAXMap.from_string(xml)
     assert map["mediawiki"]["page"]["title"] == "Page title"
   end
+
+  test "parse CDATA starts with \n or \r" do
+    xml = """
+      <xml><ToUserName><![CDATA[foo]]></ToUserName>
+      <FromUserName><![CDATA[username]]></FromUserName>
+      <CreateTime>1686729826</CreateTime>
+      <MsgType><![CDATA[\r
+      text
+
+      !]]></MsgType>
+      <Content><![CDATA[
+       
+      .]]></Content>
+      <MsgId>24148163414427972</MsgId>
+      </xml>
+    """
+
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map["xml"]["Content"] == "\n   \n  ."
+    assert map["xml"]["MsgType"] == "\r\n  text\n\n  !"
+
+    xml = """
+      <xml><ToUserName><![CDATA[foo]]></ToUserName>
+      <FromUserName><![CDATA[username]]></FromUserName>
+      <CreateTime>1686729826</CreateTime>
+      <MsgType><![CDATA[text]]></MsgType>
+      <Content><![CDATA[
+      .]]></Content>
+      <MsgId>24148163414427972</MsgId>
+      </xml>
+    """
+
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map["xml"]["Content"] == "\n  ."
+  end
+
 end
