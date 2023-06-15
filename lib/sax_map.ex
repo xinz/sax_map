@@ -110,7 +110,7 @@ defmodule SAXMap do
     Saxy.parse_string(xml, SAXMap.Handler, [ignore_attribute: {false, attribute_prefix}], cdata_as_characters: false)
   end
 
-  defp parse_from_string(xml, ignore_attribute) do
+  defp parse_from_string(xml, ignore_attribute) when is_boolean(ignore_attribute) do
     Saxy.parse_string(xml, SAXMap.Handler, [ignore_attribute: ignore_attribute], cdata_as_characters: false)
   end
 
@@ -131,7 +131,7 @@ defmodule SAXMap do
     Saxy.parse_stream(stream, SAXMap.Handler, [ignore_attribute: {false, attribute_prefix}], cdata_as_characters: false)
   end
 
-  defp parse_from_stream(stream, ignore_attribute) do
+  defp parse_from_stream(stream, ignore_attribute) when is_boolean(ignore_attribute) do
     Saxy.parse_stream(stream, SAXMap.Handler, [ignore_attribute: ignore_attribute], cdata_as_characters: false)
   end
 
