@@ -11,7 +11,7 @@ Benefit from [Saxy](https://hex.pm/packages/saxy)'s SAX mode, this library has a
 ```elixir
 def deps do
   [
-    {:sax_map, "~> 1.0"}
+    {:sax_map, "~> 1.1"}
   ]
 end
 ```
@@ -99,7 +99,7 @@ SAXMap.from_string(xml, ignore_attribute: {false, "@"})
 
 ## Benchmark
 
-Only for your reference, all of credit belong to [Saxy](https://hex.pm/packages/saxy), the details of benchmark can be found in the `bench` directory of the repository.
+Only for your reference, all credit goes to [Saxy](https://hex.pm/packages/saxy), the details of benchmark can be found in the `bench` directory of the repository.
 
 Run:
 
