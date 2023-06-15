@@ -46,7 +46,7 @@ defmodule SAXMapTest do
     <Request>
       <Header>Hi</Header>
       <Body><![CDATA[
-hello]]></Body>
+    hello]]></Body>
     </Request>
     """
 
