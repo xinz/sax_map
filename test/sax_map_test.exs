@@ -40,6 +40,27 @@ defmodule SAXMapTest do
            }
   end
 
+  test "xml with CDATA starting with enter" do
+    xml = """
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <Request>
+      <Header>Hi</Header>
+      <Body><![CDATA[
+hello]]></Body>
+    </Request>
+    """
+
+    {:ok, map} = SAXMap.from_string(xml)
+
+    assert map == %{
+             "Request" => %{
+               "Header" => "Hi",
+               "Body" => "\nhello"
+             }
+           }
+  end
+
+
   test "duplicate key" do
     xml = """
     <Request>

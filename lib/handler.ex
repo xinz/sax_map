@@ -216,8 +216,6 @@ defmodule SAXMap.Handler do
     {:ok, %{key => content}}
   end
 
-
-
   defp format_key_value_pairs(items) when is_list(items) do
     list_to_map(items, %{})
   end
