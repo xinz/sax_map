@@ -418,15 +418,24 @@ defmodule SAXMapTest do
     assert map == %{"xml" => %{"a" => "  1  ", "b" => "1", "c" => "1 ", "d" => " 1 "}}
   end
 
-  test "parse invalid characters will be ignored" do
+  test "parse unexpected characters will be ignored" do
     xml = """
     <xml>
-    <a></a> invalid be ignored
+    <a></a> unexpected be ignored
     <b></b>
     </xml>
     """
     {:ok, map} = SAXMap.from_string(xml)
     assert map == %{"xml" => %{"a" => nil, "b" => nil}}
+
+    xml = """
+    <xml>
+    <a>2</a>some unexpected be ignored
+    <b>1</b>yes ignore it
+    </xml>
+    """
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map == %{"xml" => %{"a" => "2", "b" => "1"}}
   end
 
 end
