@@ -53,7 +53,7 @@ defmodule SAXMap.Handler do
     {:ok, state}
   end
 
-  def handle_event(:characters, " " <> _, {[{_not_start_element, _}] = _stack, _} = state) do
+  def handle_event(:characters, " " <> _, {[{_not_end_tag, _}] = _stack, _} = state) do
     # Some cases characters starts with whitespace:
     #   case1  ```<xml><a>1<a> \n</xml>
     #   case2  ```<xml><a> 1<a></xml>
