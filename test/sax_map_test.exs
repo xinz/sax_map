@@ -392,4 +392,41 @@ defmodule SAXMapTest do
     assert map["xml"]["Content"] == "\n  ."
   end
 
+  test "parse trailing whitespace when process characters" do
+    # Note the single trailing space character after <a></a>,
+    # the following xml is ```<xml>\n<a></a> \n<b></b>\n</xml>\n```
+    xml = """
+    <xml>
+    <a></a> 
+    <b></b>
+    </xml>
+    """
+
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map == %{"xml" => %{"a" => nil, "b" => nil}}
+
+    xml = """
+    <xml>
+    <a>  1  </a> 
+    <b>1</b> 
+    <c>1 </c>
+    <d> 1 </d>
+    </xml>
+    """
+
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map == %{"xml" => %{"a" => "  1  ", "b" => "1", "c" => "1 ", "d" => " 1 "}}
+  end
+
+  test "parse invalid characters will be ignored" do
+    xml = """
+    <xml>
+    <a></a> invalid be ignored
+    <b></b>
+    </xml>
+    """
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map == %{"xml" => %{"a" => nil, "b" => nil}}
+  end
+
 end
