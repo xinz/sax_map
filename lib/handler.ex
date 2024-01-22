@@ -13,7 +13,6 @@ defmodule SAXMap.Handler do
         {stack, %{ignore_attribute: true} = options}
       ) do
     tag = {tag_name, nil}
-
     {:ok, {[tag | stack], options}}
   end
 
@@ -51,6 +50,14 @@ defmodule SAXMap.Handler do
   end
 
   def handle_event(:characters, "\n" <> _, state) do
+    {:ok, state}
+  end
+
+  def handle_event(:characters, " " <> _, {[{_not_start_element, _}] = _stack, _} = state) do
+    # Some cases characters starts with whitespace:
+    #   case1  ```<xml><a>1<a> \n</xml>
+    #   case2  ```<xml><a> 1<a></xml>
+    # if in case1, we need to ignore whitespace part and keep on-going
     {:ok, state}
   end
 
@@ -252,4 +259,5 @@ defmodule SAXMap.Handler do
   defp put_or_concat_to_map(current_value, map, key, value) do
     Map.put(map, key, [value, current_value])
   end
+
 end
