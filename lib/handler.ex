@@ -53,11 +53,11 @@ defmodule SAXMap.Handler do
     {:ok, state}
   end
 
-  def handle_event(:characters, " " <> _, {[{_not_end_tag, _}] = _stack, _} = state) do
-    # Some cases characters starts with whitespace:
-    #   case1  ```<xml><a>1<a> \n</xml>
-    #   case2  ```<xml><a> 1<a></xml>
-    # if in case1, we need to ignore whitespace part and keep on-going
+  def handle_event(:characters, _chars_not_in_expected_element_pair, {[{_not_end_tag, prepared}] = _stack, _} = state) when prepared != nil do
+    # When characters are not in the expected element pair:
+    #   ```<xml><a>1<a> \n</xml>```
+    #   ```<xml><a>1<a>unexpected content<c>2</c></xml>```
+    # The " \n" and "unexpected content" will be ignored
     {:ok, state}
   end
 
