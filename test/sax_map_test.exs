@@ -38,6 +38,21 @@ defmodule SAXMapTest do
                "Body" => "test content!"
              }
            }
+
+    {:ok, map} = SAXMap.from_string(xml, ignore_attribute: false)
+
+    assert %{
+             "Request" => %{
+               "content" => %{
+                 "Header" => %{
+                   "content" => "Hi"
+                 },
+                 "Body" => %{
+                   "content" => "test content!"
+                 }
+               }
+             }
+           } == map
   end
 
   test "xml with CDATA starting with enter" do

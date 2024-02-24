@@ -45,6 +45,11 @@ defmodule SAXMap.Handler do
     {:ok, {[current | stack], options}}
   end
 
+  def handle_event(:cdata, cdata, {[{tag_name, attributes, _} | stack], options}) do
+    current = {tag_name, attributes, cdata}
+    {:ok, {[current | stack], options}}
+  end
+
   def handle_event(:characters, "\r" <> _, state) do
     {:ok, state}
   end
