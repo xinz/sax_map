@@ -453,4 +453,19 @@ defmodule SAXMapTest do
     assert map == %{"xml" => %{"a" => "2", "b" => "1"}}
   end
 
+  test "text node starting with newline" do
+    xml = """
+    <xml>
+    <a>
+    1
+    </a>
+    <b>
+    2
+    </b>
+    </xml>
+    """
+    {:ok, map} = SAXMap.from_string(xml)
+    assert map == %{"xml" => %{"a" => "\n1\n", "b" => "\n2\n"}}
+  end
+
 end
