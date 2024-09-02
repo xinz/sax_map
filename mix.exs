@@ -10,8 +10,7 @@ defmodule SaxMap.MixProject do
       deps: deps(),
       docs: docs(),
       description: description(),
-      package: package(),
-      source_url: "https://github.com/xinz/sax_map"
+      package: package()
     ]
   end
 
@@ -47,7 +46,9 @@ defmodule SaxMap.MixProject do
       formatter_opts: [gfm: true],
       extras: [
         "README.md"
-      ]
+      ],
+      source_url: "https://github.com/xinz/sax_map",
+      source_ref: "master"
     ]
   end
 end
