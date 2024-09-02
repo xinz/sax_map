@@ -50,15 +50,28 @@ defmodule SAXMap.Handler do
     {:ok, {[current | stack], options}}
   end
 
-  def handle_event(:characters, "\r" <> _, state) do
-    {:ok, state}
+  def handle_event(:characters, "\r" <> _ = chars, state) do
+    if String.trim(chars) == "" do
+      {:ok, state}
+    else
+      extract_characters(chars, state)
+    end
   end
 
-  def handle_event(:characters, "\n" <> _, state) do
-    {:ok, state}
+  def handle_event(:characters, "\n" <> _ = chars, state) do
+    if String.trim(chars) == "" do
+      {:ok, state}
+    else
+      extract_characters(chars, state)
+    end
   end
 
-  def handle_event(:characters, _chars_not_in_expected_element_pair, {[{_not_end_tag, prepared}] = _stack, _} = state) when prepared != nil do
+  def handle_event(
+        :characters,
+        _chars_not_in_expected_element_pair,
+        {[{_not_end_tag, prepared}] = _stack, _} = state
+      )
+      when prepared != nil do
     # When characters are not in the expected element pair:
     #   ```<xml><a>1<a> \n</xml>```
     #   ```<xml><a>1<a>unexpected content<c>2</c></xml>```
@@ -66,26 +79,8 @@ defmodule SAXMap.Handler do
     {:ok, state}
   end
 
-  def handle_event(:characters, chars, {stack, %{ignore_attribute: true} = options}) do
-    [{tag_name, _content} | stack] = stack
-    current = {tag_name, chars}
-    {:ok, {[current | stack], options}}
-  end
-
-  def handle_event(:characters, chars, {stack, %{ignore_attribute: false} = options}) do
-    [{tag_name, attributes, _content} | stack] = stack
-    current = {tag_name, attributes, chars}
-    {:ok, {[current | stack], options}}
-  end
-
-  def handle_event(
-        :characters,
-        chars,
-        {stack, %{ignore_attribute: {false, _attribute_prefix}} = options}
-      ) do
-    [{tag_name, attributes, _content} | stack] = stack
-    current = {tag_name, attributes, chars}
-    {:ok, {[current | stack], options}}
+  def handle_event(:characters, chars, state) do
+    extract_characters(chars, state)
   end
 
   def handle_event(
@@ -265,4 +260,24 @@ defmodule SAXMap.Handler do
     Map.put(map, key, [value, current_value])
   end
 
+  defp extract_characters(chars, {stack, %{ignore_attribute: true} = options}) do
+    [{tag_name, _content} | stack] = stack
+    current = {tag_name, chars}
+    {:ok, {[current | stack], options}}
+  end
+
+  defp extract_characters(chars, {stack, %{ignore_attribute: false} = options}) do
+    [{tag_name, attributes, _content} | stack] = stack
+    current = {tag_name, attributes, chars}
+    {:ok, {[current | stack], options}}
+  end
+
+  defp extract_characters(
+         chars,
+         {stack, %{ignore_attribute: {false, _attribute_prefix}} = options}
+       ) do
+    [{tag_name, attributes, _content} | stack] = stack
+    current = {tag_name, attributes, chars}
+    {:ok, {[current | stack], options}}
+  end
 end
