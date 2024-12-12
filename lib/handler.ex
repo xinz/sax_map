@@ -3,6 +3,13 @@ defmodule SAXMap.Handler do
 
   @behaviour Saxy.Handler
 
+  # The key name of internal text content when process XML mixed content
+  @key_text_content "_#{__MODULE__}.TextContent_"
+
+  # The key name of the transfer map result for the text content
+  # part extracted from the original XML data
+  @key_content "content"
+
   def handle_event(:start_document, _prolog, opts) do
     {:ok, {[], Map.new(opts)}}
   end
@@ -12,6 +19,7 @@ defmodule SAXMap.Handler do
         {tag_name, _attributes},
         {stack, %{ignore_attribute: true} = options}
       ) do
+    stack = prepare_stack_text_when_start_element(stack)
     tag = {tag_name, nil}
     {:ok, {[tag | stack], options}}
   end
@@ -21,8 +29,8 @@ defmodule SAXMap.Handler do
         {tag_name, attributes},
         {stack, %{ignore_attribute: false} = options}
       ) do
+    stack = prepare_stack_text_when_start_element(stack)
     tag = {tag_name, attributes, nil}
-
     {:ok, {[tag | stack], options}}
   end
 
@@ -31,6 +39,7 @@ defmodule SAXMap.Handler do
         {tag_name, attributes},
         {stack, %{ignore_attribute: {false, attribute_prefix}} = options}
       ) do
+    stack = prepare_stack_text_when_start_element(stack)
     attributes =
       Enum.map(attributes, fn {key, value} ->
         {"#{attribute_prefix}#{key}", value}
@@ -51,32 +60,20 @@ defmodule SAXMap.Handler do
   end
 
   def handle_event(:characters, "\r" <> _ = chars, state) do
-    if String.trim(chars) == "" do
-      {:ok, state}
-    else
-      extract_characters(chars, state)
-    end
+    ignore_or_extract_characters(chars, state)
   end
 
   def handle_event(:characters, "\n" <> _ = chars, state) do
-    if String.trim(chars) == "" do
-      {:ok, state}
-    else
-      extract_characters(chars, state)
-    end
+    ignore_or_extract_characters(chars, state)
   end
 
   def handle_event(
         :characters,
-        _chars_not_in_expected_element_pair,
+        chars,
         {[{_not_end_tag, prepared}] = _stack, _} = state
       )
       when prepared != nil do
-    # When characters are not in the expected element pair:
-    #   ```<xml><a>1<a> \n</xml>```
-    #   ```<xml><a>1<a>unexpected content<c>2</c></xml>```
-    # The " \n" and "unexpected content" will be ignored
-    {:ok, state}
+    ignore_or_extract_characters(chars, state)
   end
 
   def handle_event(:characters, chars, state) do
@@ -129,7 +126,7 @@ defmodule SAXMap.Handler do
          %{ignore_attribute: false} = options}
       ) do
     formated_content = format_key_value_pairs(content)
-    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
+    current = %{tag_name => format_key_value_pairs([{@key_content, formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current]}
     {:ok, {[parent | rest], options}}
   end
@@ -141,7 +138,7 @@ defmodule SAXMap.Handler do
          %{ignore_attribute: {false, _attribute_prefix}} = options}
       ) do
     formated_content = format_key_value_pairs(content)
-    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
+    current = %{tag_name => format_key_value_pairs([{@key_content, formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current]}
     {:ok, {[parent | rest], options}}
   end
@@ -166,7 +163,7 @@ defmodule SAXMap.Handler do
          ], %{ignore_attribute: false} = options}
       ) do
     formated_content = format_key_value_pairs(content)
-    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
+    current = %{tag_name => format_key_value_pairs([{@key_content, formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current | parent_content]}
     {:ok, {[parent | rest], options}}
   end
@@ -180,7 +177,7 @@ defmodule SAXMap.Handler do
          ], %{ignore_attribute: {false, _attribute_prefix}} = options}
       ) do
     formated_content = format_key_value_pairs(content)
-    current = %{tag_name => format_key_value_pairs([{"content", formated_content} | attributes])}
+    current = %{tag_name => format_key_value_pairs([{@key_content, formated_content} | attributes])}
     parent = {parent_tag_name, parent_attributes, [current | parent_content]}
     {:ok, {[parent | rest], options}}
   end
@@ -207,7 +204,7 @@ defmodule SAXMap.Handler do
 
   def handle_event(:end_document, _, {{key, attributes, value}, %{ignore_attribute: false}}) do
     content =
-      format_key_value_pairs(attributes) |> Map.put("content", format_key_value_pairs(value))
+      format_key_value_pairs(attributes) |> Map.put(@key_content, format_key_value_pairs(value))
 
     {:ok, %{key => content}}
   end
@@ -218,8 +215,7 @@ defmodule SAXMap.Handler do
         {{key, attributes, value}, %{ignore_attribute: {false, _attribute_prefix}}}
       ) do
     content =
-      format_key_value_pairs(attributes) |> Map.put("content", format_key_value_pairs(value))
-
+      format_key_value_pairs(attributes) |> Map.put(@key_content, format_key_value_pairs(value))
     {:ok, %{key => content}}
   end
 
@@ -233,6 +229,11 @@ defmodule SAXMap.Handler do
 
   defp list_to_map([], prepared) do
     prepared
+  end
+
+  defp list_to_map([%{@key_text_content => text_items} | rest], prepared) do
+    # Use "content" instead of @key_text_content as the key name
+    list_to_map(rest, Map.put(prepared, @key_content, Enum.reverse(text_items)))
   end
 
   defp list_to_map([item | rest], prepared) when is_map(item) do
@@ -260,15 +261,24 @@ defmodule SAXMap.Handler do
     Map.put(map, key, [value, current_value])
   end
 
+  defp ignore_or_extract_characters(chars, state) do
+    if String.trim(chars) == "" do
+      # ignore
+      {:ok, state}
+    else
+      extract_characters(chars, state)
+    end
+  end
+
   defp extract_characters(chars, {stack, %{ignore_attribute: true} = options}) do
-    [{tag_name, _content} | stack] = stack
-    current = {tag_name, chars}
+    [{tag_name, content} | stack] = stack
+    current = {tag_name, append_characters_text_content(content, chars)}
     {:ok, {[current | stack], options}}
   end
 
   defp extract_characters(chars, {stack, %{ignore_attribute: false} = options}) do
-    [{tag_name, attributes, _content} | stack] = stack
-    current = {tag_name, attributes, chars}
+    [{tag_name, attributes, content} | stack] = stack
+    current = {tag_name, attributes, append_characters_text_content(content, chars)}
     {:ok, {[current | stack], options}}
   end
 
@@ -276,8 +286,27 @@ defmodule SAXMap.Handler do
          chars,
          {stack, %{ignore_attribute: {false, _attribute_prefix}} = options}
        ) do
-    [{tag_name, attributes, _content} | stack] = stack
-    current = {tag_name, attributes, chars}
+    [{tag_name, attributes, content} | stack] = stack
+    current = {tag_name, attributes, append_characters_text_content(content, chars)}
     {:ok, {[current | stack], options}}
   end
+
+  defp prepare_stack_text_when_start_element([{key, value} | rest]) when is_bitstring(value) do
+    [{key, [%{@key_text_content => [value]}]} | rest]
+  end
+  defp prepare_stack_text_when_start_element([{key, attributes, value} | rest]) when is_bitstring(value) do
+    [{key, attributes, [%{@key_text_content => [value]}]} | rest]
+  end
+  defp prepare_stack_text_when_start_element(stack), do: stack
+
+  defp append_characters_text_content(nil, chars), do: chars
+  defp append_characters_text_content(content, chars) when is_list(content) do
+    case Enum.reverse(content) do
+      [%{@key_text_content => text_items} | rest] ->
+        Enum.reverse([%{@key_text_content => [chars | text_items]} | rest])
+      items ->
+        Enum.reverse([%{@key_text_content => [chars]} | items])
+    end
+  end
+
 end
