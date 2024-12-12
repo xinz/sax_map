@@ -11,7 +11,7 @@ Benefit from [Saxy](https://hex.pm/packages/saxy)'s SAX mode, this library has a
 ```elixir
 def deps do
   [
-    {:sax_map, "~> 1.2"}
+    {:sax_map, "~> 1.4"}
   ]
 end
 ```
@@ -95,7 +95,7 @@ SAXMap.from_string(xml, ignore_attribute: {false, "@"})
   }}
 ```
 
-**Notice**: The `ignore_attribute: false` equals `ignore_attribute: {false, ""}`, in this case, the child elements will be automatically naming with "content" as the key of the key-value pair to distinct this key-value pair is from content or attribute.
+**Please note**: The `ignore_attribute: false` equals `ignore_attribute: {false, ""}`, in this case, the child elements will be automatically naming with `"content"` as the key of the key-value pair to distinct this key-value pair is from XML text content or attribute. Currently, the `"content"` naming is a reserved keyword, please be careful to distinguish it from the XML node name.
 
 ## Benchmark
 
