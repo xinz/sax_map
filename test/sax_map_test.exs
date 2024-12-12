@@ -433,24 +433,47 @@ defmodule SAXMapTest do
     assert map == %{"xml" => %{"a" => "  1  ", "b" => "1", "c" => "1 ", "d" => " 1 "}}
   end
 
-  test "parse unexpected characters will be ignored" do
+  test "parse mixed content with text and child elements" do
     xml = """
-    <xml>
-    <a></a> unexpected be ignored
-    <b></b>
-    </xml>
+    <p>Source: <a href="test">link1</a>,<a href="test2">link2</a>,</p>
     """
+
     {:ok, map} = SAXMap.from_string(xml)
-    assert map == %{"xml" => %{"a" => nil, "b" => nil}}
+    assert map == %{"p" => %{"a" => ["link1", "link2"], "content" => ["Source: ", ",", ","]}}
+
+    {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, "@"})
+    assert map ==
+      %{
+        "p" => %{
+          "content" => %{
+            "a" => [
+              %{"@href" => "test", "content" => "link1"},
+              %{"@href" => "test2", "content" => "link2"}
+            ],
+            "content" => ["Source: ", ",", ","]
+          }
+        }
+      }
 
     xml = """
-    <xml>
-    <a>2</a>some unexpected be ignored
-    <b>1</b>yes ignore it
-    </xml>
+    <p><a href="test">link1</a>,<a href="test2">link2</a>,</p>
     """
+
     {:ok, map} = SAXMap.from_string(xml)
-    assert map == %{"xml" => %{"a" => "2", "b" => "1"}}
+    assert map == %{"p" => %{"a" => ["link1", "link2"], "content" => [",", ","]}}
+
+    {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, "@-"})
+    assert map == %{
+      "p" => %{
+        "content" => %{
+          "a" => [
+            %{"@-href" => "test", "content" => "link1"},
+            %{"@-href" => "test2", "content" => "link2"}
+          ],
+          "content" => [",", ","]
+        }
+      }
+    }
   end
 
   test "text node starting with newline" do
