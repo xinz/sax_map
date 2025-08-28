@@ -85,6 +85,7 @@ defmodule SAXMap.Handler do
     list_to_map(rest, prepared)
   end
 
+  @compile {:inline, put_or_concat_to_map: 3}
   defp put_or_concat_to_map(nil, map, key, value) do
     Map.put(map, key, value)
   end
@@ -158,11 +159,15 @@ defmodule SAXMap.Handler do
   end
   defp handle_start_element({tag_name, attributes}, stack, {false, attribute_prefix}) do
     stack = prepare_stack_text_when_start_element(stack)
-    attributes =
-      Enum.map(attributes, fn {key, value} ->
-        {attribute_prefix <> key, value}
-      end)
+    # Optimized attribute prefix mapping
+    attributes = map_attribute_prefix(attributes, attribute_prefix, [])
     [{tag_name, attributes, nil} | stack]
+  end
+
+  # Optimized tail-recursive attribute prefix mapping to avoid Enum.map overhead
+  defp map_attribute_prefix([], _prefix, acc), do: Enum.reverse(acc)
+  defp map_attribute_prefix([{key, value} | rest], prefix, acc) do
+    map_attribute_prefix(rest, prefix, [{prefix <> key, value} | acc])
   end
 
   defp handle_cdata(cdata, [{tag_name, _} | rest]) do
@@ -191,9 +196,9 @@ defmodule SAXMap.Handler do
   defp handle_end_element([{tag_name, attributes, content}], false) do
     {tag_name, attributes, content}
   end
-  defp handle_end_element([{tag_name, content} | [{parenet_tag_name, nil} | rest]], true) do
+  defp handle_end_element([{tag_name, content} | [{parent_tag_name, nil} | rest]], true) do
     current = {tag_name, format_key_value_pairs(content)}
-    [{parenet_tag_name, [current]} | rest]
+    [{parent_tag_name, [current]} | rest]
   end
   defp handle_end_element([{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, nil} | rest]], false) do
     formated_content = format_key_value_pairs(content)
