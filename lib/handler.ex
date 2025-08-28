@@ -12,31 +12,33 @@ defmodule SAXMap.Handler do
 
   def handle_event(:start_document, _prolog, opts) do
     ignore_attribute = Keyword.get(opts, :ignore_attribute, true)
-    {:ok, {[], ignore_attribute}}
+    # Pre-compute the simplified attribute option to avoid repeated function calls
+    simplified_ignore_attr = simplify_ignore_attribute_opt(ignore_attribute)
+    {:ok, {[], ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:start_element, element, {stack, ignore_attribute}) do
+  def handle_event(:start_element, element, {stack, ignore_attribute, simplified_ignore_attr}) do
     stack = handle_start_element(element, stack, ignore_attribute)
-    {:ok, {stack, ignore_attribute}}
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:cdata, cdata, {stack, ignore_attribute}) do
+  def handle_event(:cdata, cdata, {stack, ignore_attribute, simplified_ignore_attr}) do
     stack = handle_cdata(cdata, stack)
-    {:ok, {stack, ignore_attribute}}
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:characters, chars, {stack, ignore_attribute}) do
-    stack = handle_characters(chars, stack, simplify_ignore_attribute_opt(ignore_attribute))
-    {:ok, {stack, ignore_attribute}}
+  def handle_event(:characters, chars, {stack, ignore_attribute, simplified_ignore_attr}) do
+    stack = handle_characters(chars, stack, simplified_ignore_attr)
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:end_element, _tag_name, {stack, ignore_attribute}) do
-    stack = handle_end_element(stack, simplify_ignore_attribute_opt(ignore_attribute))
-    {:ok, {stack, ignore_attribute}}
+  def handle_event(:end_element, _tag_name, {stack, ignore_attribute, simplified_ignore_attr}) do
+    stack = handle_end_element(stack, simplified_ignore_attr)
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:end_document, _, {stack, ignore_attribute}) do
-    result = handle_end_document(stack, simplify_ignore_attribute_opt(ignore_attribute))
+  def handle_event(:end_document, _, {stack, _ignore_attribute, simplified_ignore_attr}) do
+    result = handle_end_document(stack, simplified_ignore_attr)
     {:ok, result}
   end
 
@@ -58,10 +60,23 @@ defmodule SAXMap.Handler do
   end
 
   defp list_to_map([item | rest], prepared) when is_map(item) do
-    {key, value} = item |> Map.to_list() |> hd()
-    existed_value = Map.get(prepared, key)
-    prepared = put_or_concat_to_map(existed_value, prepared, key, value)
-    list_to_map(rest, prepared)
+    # Optimized: avoid converting entire map to list just to get first element
+    case Map.keys(item) do
+      [key] -> 
+        value = Map.get(item, key)
+        existed_value = Map.get(prepared, key)
+        prepared = put_or_concat_to_map(existed_value, prepared, key, value)
+        list_to_map(rest, prepared)
+      [key | _] ->
+        # Multiple keys - fallback to original behavior for first key
+        value = Map.get(item, key)
+        existed_value = Map.get(prepared, key)
+        prepared = put_or_concat_to_map(existed_value, prepared, key, value)
+        list_to_map(rest, prepared)
+      [] ->
+        # Empty map, skip
+        list_to_map(rest, prepared)
+    end
   end
 
   defp list_to_map([{key, value} | rest], prepared) do
@@ -83,13 +98,21 @@ defmodule SAXMap.Handler do
   end
 
   defp ignore_or_extract_characters(chars, stack, value) do
-    if String.trim(chars) == "" do
+    if all_whitespace?(chars) do
       # ignore
       stack
     else
       extract_characters_into_tag(chars, stack, value)
     end
   end
+
+  # Optimized whitespace check - avoids creating new strings
+  @compile {:inline, all_whitespace?: 1}
+  defp all_whitespace?(<<>>), do: true
+  defp all_whitespace?(<<char, rest::binary>>) when char in [?\s, ?\t, ?\n, ?\r] do
+    all_whitespace?(rest)
+  end
+  defp all_whitespace?(_), do: false
 
   defp extract_characters_into_tag(chars, [{tag_name, content} | rest], true) do
     [{tag_name, append_characters_text_content(content, chars)} | rest]
@@ -109,12 +132,20 @@ defmodule SAXMap.Handler do
 
   defp append_characters_text_content(nil, chars), do: chars
   defp append_characters_text_content(content, chars) when is_list(content) do
-    case Enum.reverse(content) do
-      [%{@key_text_content => text_items} | rest] ->
-        Enum.reverse([%{@key_text_content => [chars | text_items]} | rest])
-      items ->
-        Enum.reverse([%{@key_text_content => [chars]} | items])
-    end
+    # Optimized version - avoid double reversal by working with the list directly
+    append_characters_to_content(content, chars, [])
+  end
+
+  # Helper function to append characters without double reversal
+  defp append_characters_to_content([], chars, acc) do
+    [%{@key_text_content => [chars]} | acc]
+  end
+  defp append_characters_to_content([%{@key_text_content => text_items} | rest], chars, acc) do
+    # Found text content at head, prepend char and rebuild list
+    [%{@key_text_content => [chars | text_items]} | rest] ++ Enum.reverse(acc)
+  end
+  defp append_characters_to_content([item | rest], chars, acc) do
+    append_characters_to_content(rest, chars, [item | acc])
   end
 
   defp handle_start_element({tag_name, _attributes}, stack, true) do
