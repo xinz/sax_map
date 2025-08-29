@@ -4,7 +4,7 @@ defmodule SaxMap.MixProject do
   def project do
     [
       app: :sax_map,
-      version: "1.4.1",
+      version: "1.4.2",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
