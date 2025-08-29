@@ -54,7 +54,6 @@ defmodule SAXMap.Handler do
   end
 
   defp list_to_map([%{@key_text_content => text_items} | rest], prepared) do
-    # Use "content" instead of @key_text_content as the key name
     list_to_map(rest, Map.put(prepared, @key_content, Enum.reverse(text_items)))
   end
 
@@ -66,13 +65,11 @@ defmodule SAXMap.Handler do
         prepared = put_or_concat_to_map(existed_value, prepared, key, value)
         list_to_map(rest, prepared)
       [key | _] ->
-        # Multiple keys - fallback to original behavior for first key
         value = Map.get(item, key)
         existed_value = Map.get(prepared, key)
         prepared = put_or_concat_to_map(existed_value, prepared, key, value)
         list_to_map(rest, prepared)
       [] ->
-        # Empty map, skip
         list_to_map(rest, prepared)
     end
   end
