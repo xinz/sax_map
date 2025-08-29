@@ -58,21 +58,17 @@ defmodule SAXMap.Handler do
     list_to_map(rest, Map.put(prepared, @key_content, Enum.reverse(text_items)))
   end
 
+  defp list_to_map([map | rest], prepared) when map_size(map) == 0 do
+    # Empty map as `%{}`
+    list_to_map(rest, prepared)
+  end
+
   defp list_to_map([item | rest], prepared) when is_map(item) do
-    case Map.keys(item) do
-      [key] -> 
-        value = Map.get(item, key)
-        existed_value = Map.get(prepared, key)
-        prepared = put_or_concat_to_map(existed_value, prepared, key, value)
-        list_to_map(rest, prepared)
-      [key | _] ->
-        value = Map.get(item, key)
-        existed_value = Map.get(prepared, key)
-        prepared = put_or_concat_to_map(existed_value, prepared, key, value)
-        list_to_map(rest, prepared)
-      [] ->
-        list_to_map(rest, prepared)
-    end
+    [key | _] = Map.keys(item)
+    value = Map.get(item, key)
+    existed_value = Map.get(prepared, key)
+    prepared = put_or_concat_to_map(existed_value, prepared, key, value)
+    list_to_map(rest, prepared)
   end
 
   defp list_to_map([{key, value} | rest], prepared) do
