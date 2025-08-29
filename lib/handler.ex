@@ -85,7 +85,7 @@ defmodule SAXMap.Handler do
     list_to_map(rest, prepared)
   end
 
-  @compile {:inline, put_or_concat_to_map: 3}
+  @compile {:inline, put_or_concat_to_map: 4}
   defp put_or_concat_to_map(nil, map, key, value) do
     Map.put(map, key, value)
   end
@@ -134,7 +134,7 @@ defmodule SAXMap.Handler do
   defp append_characters_text_content(nil, chars), do: chars
   defp append_characters_text_content(content, chars) when is_list(content) do
     # Optimized version - avoid double reversal by working with the list directly
-    append_characters_to_content(content, chars, [])
+    append_characters_to_content(Enum.reverse(content), chars, [])
   end
 
   # Helper function to append characters without double reversal
@@ -143,7 +143,7 @@ defmodule SAXMap.Handler do
   end
   defp append_characters_to_content([%{@key_text_content => text_items} | rest], chars, acc) do
     # Found text content at head, prepend char and rebuild list
-    [%{@key_text_content => [chars | text_items]} | rest] ++ Enum.reverse(acc)
+    [%{@key_text_content => [chars | text_items]} | rest] ++ acc
   end
   defp append_characters_to_content([item | rest], chars, acc) do
     append_characters_to_content(rest, chars, [item | acc])
