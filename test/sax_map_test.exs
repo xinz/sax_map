@@ -435,11 +435,11 @@ defmodule SAXMapTest do
 
   test "parse mixed content with text and child elements" do
     xml = """
-    <p>Source: <a href="test">link1</a>,<a href="test2">link2</a>,</p>
+    <p>Source: <a href="test">link1</a>,<a href="test2">link2</a>,<a href="test3">link3</a>1</p>
     """
 
     {:ok, map} = SAXMap.from_string(xml)
-    assert map == %{"p" => %{"a" => ["link1", "link2"], "content" => ["Source: ", ",", ","]}}
+    assert map == %{"p" => %{"a" => ["link1", "link2", "link3"], "content" => ["Source: ", ",", ",", "1"]}}
 
     {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, "@"})
     assert map ==
@@ -448,9 +448,10 @@ defmodule SAXMapTest do
           "content" => %{
             "a" => [
               %{"@href" => "test", "content" => "link1"},
-              %{"@href" => "test2", "content" => "link2"}
+              %{"@href" => "test2", "content" => "link2"},
+              %{"@href" => "test3", "content" => "link3"},
             ],
-            "content" => ["Source: ", ",", ","]
+            "content" => ["Source: ", ",", ",", "1"]
           }
         }
       }
