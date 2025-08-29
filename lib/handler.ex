@@ -12,7 +12,6 @@ defmodule SAXMap.Handler do
 
   def handle_event(:start_document, _prolog, opts) do
     ignore_attribute = Keyword.get(opts, :ignore_attribute, true)
-    # Pre-compute the simplified attribute option to avoid repeated function calls
     simplified_ignore_attr = simplify_ignore_attribute_opt(ignore_attribute)
     {:ok, {[], ignore_attribute, simplified_ignore_attr}}
   end
@@ -60,7 +59,6 @@ defmodule SAXMap.Handler do
   end
 
   defp list_to_map([item | rest], prepared) when is_map(item) do
-    # Optimized: avoid converting entire map to list just to get first element
     case Map.keys(item) do
       [key] -> 
         value = Map.get(item, key)
@@ -107,7 +105,6 @@ defmodule SAXMap.Handler do
     end
   end
 
-  # Optimized whitespace check - avoids creating new strings
   @compile {:inline, all_whitespace?: 1}
   defp all_whitespace?(<<>>), do: true
   defp all_whitespace?(<<char, rest::binary>>) when char in [?\s, ?\t, ?\n, ?\r] do
@@ -133,16 +130,13 @@ defmodule SAXMap.Handler do
 
   defp append_characters_text_content(nil, chars), do: chars
   defp append_characters_text_content(content, chars) when is_list(content) do
-    # Optimized version - avoid double reversal by working with the list directly
     append_characters_to_content(Enum.reverse(content), chars, [])
   end
 
-  # Helper function to append characters without double reversal
   defp append_characters_to_content([], chars, acc) do
     [%{@key_text_content => [chars]} | acc]
   end
   defp append_characters_to_content([%{@key_text_content => text_items} | rest], chars, acc) do
-    # Found text content at head, prepend char and rebuild list
     [%{@key_text_content => [chars | text_items]} | rest] ++ acc
   end
   defp append_characters_to_content([item | rest], chars, acc) do
@@ -159,12 +153,10 @@ defmodule SAXMap.Handler do
   end
   defp handle_start_element({tag_name, attributes}, stack, {false, attribute_prefix}) do
     stack = prepare_stack_text_when_start_element(stack)
-    # Optimized attribute prefix mapping
     attributes = map_attribute_prefix(attributes, attribute_prefix, [])
     [{tag_name, attributes, nil} | stack]
   end
 
-  # Optimized tail-recursive attribute prefix mapping to avoid Enum.map overhead
   defp map_attribute_prefix([], _prefix, acc), do: Enum.reverse(acc)
   defp map_attribute_prefix([{key, value} | rest], prefix, acc) do
     map_attribute_prefix(rest, prefix, [{prefix <> key, value} | acc])
