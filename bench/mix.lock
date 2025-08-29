@@ -1,7 +1,8 @@
 %{
-  "benchee": {:hex, :benchee, "1.0.1", "66b211f9bfd84bd97e6d1beaddf8fc2312aaabe192f776e8931cb0c16f53a521", [:mix], [{:deep_merge, "~> 1.0", [hex: :deep_merge, repo: "hexpm", optional: false]}], "hexpm", "3ad58ae787e9c7c94dd7ceda3b587ec2c64604563e049b2a0e8baafae832addb"},
+  "benchee": {:hex, :benchee, "1.4.0", "9f1f96a30ac80bab94faad644b39a9031d5632e517416a8ab0a6b0ac4df124ce", [:mix], [{:deep_merge, "~> 1.0", [hex: :deep_merge, repo: "hexpm", optional: false]}, {:statistex, "~> 1.0", [hex: :statistex, repo: "hexpm", optional: false]}, {:table, "~> 0.1.0", [hex: :table, repo: "hexpm", optional: true]}], "hexpm", "299cd10dd8ce51c9ea3ddb74bb150f93d25e968f93e4c1fa31698a8e4fa5d715"},
   "deep_merge": {:hex, :deep_merge, "1.0.0", "b4aa1a0d1acac393bdf38b2291af38cb1d4a52806cf7a4906f718e1feb5ee961", [:mix], [], "hexpm", "ce708e5f094b9cd4e8f2be4f00d2f4250c4095be93f8cd6d018c753894885430"},
-  "elixir_xml_to_map": {:hex, :elixir_xml_to_map, "2.0.0", "a9b4a3e03ec7b938d463958ce857aa719627efc9af62412f7fa80497f69c1091", [:mix], [{:erlsom, "~>1.4", [hex: :erlsom, repo: "hexpm", optional: false]}], "hexpm", "6988899f0cd5036a6dabc493ffc110cf3d6bffbf8e1b56410575f66c1bf6eb8c"},
-  "erlsom": {:hex, :erlsom, "1.5.0", "c5a5cdd0ee0e8dca62bcc4b13ff08da24fdefc16ccd8b25282a2fda2ba1be24a", [:rebar3], [], "hexpm", "55a9dbf9cfa77fcfc108bd8e2c4f9f784dea228a8f4b06ea10b684944946955a"},
-  "saxy": {:hex, :saxy, "1.4.0", "c7203ad20001f72eaaad07d08f82be063fa94a40924e6bb39d93d55f979abcba", [:mix], [], "hexpm", "3fe790354d3f2234ad0b5be2d99822a23fa2d4e8ccd6657c672901dac172e9a9"},
+  "elixir_xml_to_map": {:hex, :elixir_xml_to_map, "3.1.0", "4d6260486a8cce59e4bf3575fe2dd2a24766546ceeef9f93fcec6f7c62a2827a", [:mix], [{:erlsom, "~> 1.4", [hex: :erlsom, repo: "hexpm", optional: false]}], "hexpm", "8fe5f2e75f90bab07ee2161120c2dc038ebcae8135554f5582990f1c8c21f911"},
+  "erlsom": {:hex, :erlsom, "1.5.2", "3e47c53a199136fb4d20d5479edb7c9229f31624534c062633951c8d14dcd276", [:rebar3], [], "hexpm", "4e765cc677fb30509f7b628ff2914e124cf4dcc0fac1c0a62ee4dcee24215b5d"},
+  "saxy": {:hex, :saxy, "1.6.0", "02cb4e9bd045f25ac0c70fae8164754878327ee393c338a090288210b02317ee", [:mix], [], "hexpm", "ef42eb4ac983ca77d650fbdb68368b26570f6cc5895f0faa04d34a6f384abad3"},
+  "statistex": {:hex, :statistex, "1.1.0", "7fec1eb2f580a0d2c1a05ed27396a084ab064a40cfc84246dbfb0c72a5c761e5", [:mix], [], "hexpm", "f5950ea26ad43246ba2cce54324ac394a4e7408fdcf98b8e230f503a0cba9cf5"},
 }
