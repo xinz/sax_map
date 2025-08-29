@@ -54,6 +54,7 @@ defmodule SAXMap.Handler do
   end
 
   defp list_to_map([%{@key_text_content => text_items} | rest], prepared) do
+    # Use "content" instead of @key_text_content as the key name
     list_to_map(rest, Map.put(prepared, @key_content, Enum.reverse(text_items)))
   end
 
