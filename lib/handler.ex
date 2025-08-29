@@ -12,31 +12,32 @@ defmodule SAXMap.Handler do
 
   def handle_event(:start_document, _prolog, opts) do
     ignore_attribute = Keyword.get(opts, :ignore_attribute, true)
-    {:ok, {[], ignore_attribute}}
+    simplified_ignore_attr = simplify_ignore_attribute_opt(ignore_attribute)
+    {:ok, {[], ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:start_element, element, {stack, ignore_attribute}) do
+  def handle_event(:start_element, element, {stack, ignore_attribute, simplified_ignore_attr}) do
     stack = handle_start_element(element, stack, ignore_attribute)
-    {:ok, {stack, ignore_attribute}}
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:cdata, cdata, {stack, ignore_attribute}) do
+  def handle_event(:cdata, cdata, {stack, ignore_attribute, simplified_ignore_attr}) do
     stack = handle_cdata(cdata, stack)
-    {:ok, {stack, ignore_attribute}}
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:characters, chars, {stack, ignore_attribute}) do
-    stack = handle_characters(chars, stack, simplify_ignore_attribute_opt(ignore_attribute))
-    {:ok, {stack, ignore_attribute}}
+  def handle_event(:characters, chars, {stack, ignore_attribute, simplified_ignore_attr}) do
+    stack = handle_characters(chars, stack, simplified_ignore_attr)
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:end_element, _tag_name, {stack, ignore_attribute}) do
-    stack = handle_end_element(stack, simplify_ignore_attribute_opt(ignore_attribute))
-    {:ok, {stack, ignore_attribute}}
+  def handle_event(:end_element, _tag_name, {stack, ignore_attribute, simplified_ignore_attr}) do
+    stack = handle_end_element(stack, simplified_ignore_attr)
+    {:ok, {stack, ignore_attribute, simplified_ignore_attr}}
   end
 
-  def handle_event(:end_document, _, {stack, ignore_attribute}) do
-    result = handle_end_document(stack, simplify_ignore_attribute_opt(ignore_attribute))
+  def handle_event(:end_document, _, {stack, _ignore_attribute, simplified_ignore_attr}) do
+    result = handle_end_document(stack, simplified_ignore_attr)
     {:ok, result}
   end
 
@@ -57,8 +58,14 @@ defmodule SAXMap.Handler do
     list_to_map(rest, Map.put(prepared, @key_content, Enum.reverse(text_items)))
   end
 
+  defp list_to_map([map | rest], prepared) when map_size(map) == 0 do
+    # Empty map as `%{}`
+    list_to_map(rest, prepared)
+  end
+
   defp list_to_map([item | rest], prepared) when is_map(item) do
-    {key, value} = item |> Map.to_list() |> hd()
+    [key | _] = Map.keys(item)
+    value = Map.get(item, key)
     existed_value = Map.get(prepared, key)
     prepared = put_or_concat_to_map(existed_value, prepared, key, value)
     list_to_map(rest, prepared)
@@ -70,6 +77,7 @@ defmodule SAXMap.Handler do
     list_to_map(rest, prepared)
   end
 
+  @compile {:inline, put_or_concat_to_map: 4}
   defp put_or_concat_to_map(nil, map, key, value) do
     Map.put(map, key, value)
   end
@@ -83,13 +91,20 @@ defmodule SAXMap.Handler do
   end
 
   defp ignore_or_extract_characters(chars, stack, value) do
-    if String.trim(chars) == "" do
+    if all_whitespace?(chars) do
       # ignore
       stack
     else
       extract_characters_into_tag(chars, stack, value)
     end
   end
+
+  @compile {:inline, all_whitespace?: 1}
+  defp all_whitespace?(<<>>), do: true
+  defp all_whitespace?(<<char, rest::binary>>) when char in [?\s, ?\t, ?\n, ?\r] do
+    all_whitespace?(rest)
+  end
+  defp all_whitespace?(_), do: false
 
   defp extract_characters_into_tag(chars, [{tag_name, content} | rest], true) do
     [{tag_name, append_characters_text_content(content, chars)} | rest]
@@ -109,12 +124,17 @@ defmodule SAXMap.Handler do
 
   defp append_characters_text_content(nil, chars), do: chars
   defp append_characters_text_content(content, chars) when is_list(content) do
-    case Enum.reverse(content) do
-      [%{@key_text_content => text_items} | rest] ->
-        Enum.reverse([%{@key_text_content => [chars | text_items]} | rest])
-      items ->
-        Enum.reverse([%{@key_text_content => [chars]} | items])
-    end
+    append_characters_to_content(Enum.reverse(content), chars, [])
+  end
+
+  defp append_characters_to_content([], chars, acc) do
+    [%{@key_text_content => [chars]} | acc]
+  end
+  defp append_characters_to_content([%{@key_text_content => text_items} | rest], chars, acc) do
+    [%{@key_text_content => [chars | text_items]} | rest] ++ acc
+  end
+  defp append_characters_to_content([item | rest], chars, acc) do
+    append_characters_to_content(rest, chars, [item | acc])
   end
 
   defp handle_start_element({tag_name, _attributes}, stack, true) do
@@ -127,11 +147,13 @@ defmodule SAXMap.Handler do
   end
   defp handle_start_element({tag_name, attributes}, stack, {false, attribute_prefix}) do
     stack = prepare_stack_text_when_start_element(stack)
-    attributes =
-      Enum.map(attributes, fn {key, value} ->
-        {attribute_prefix <> key, value}
-      end)
+    attributes = map_attribute_prefix(attributes, attribute_prefix, [])
     [{tag_name, attributes, nil} | stack]
+  end
+
+  defp map_attribute_prefix([], _prefix, acc), do: Enum.reverse(acc)
+  defp map_attribute_prefix([{key, value} | rest], prefix, acc) do
+    map_attribute_prefix(rest, prefix, [{prefix <> key, value} | acc])
   end
 
   defp handle_cdata(cdata, [{tag_name, _} | rest]) do
@@ -160,9 +182,9 @@ defmodule SAXMap.Handler do
   defp handle_end_element([{tag_name, attributes, content}], false) do
     {tag_name, attributes, content}
   end
-  defp handle_end_element([{tag_name, content} | [{parenet_tag_name, nil} | rest]], true) do
+  defp handle_end_element([{tag_name, content} | [{parent_tag_name, nil} | rest]], true) do
     current = {tag_name, format_key_value_pairs(content)}
-    [{parenet_tag_name, [current]} | rest]
+    [{parent_tag_name, [current]} | rest]
   end
   defp handle_end_element([{tag_name, attributes, content} | [{parent_tag_name, parent_attributes, nil} | rest]], false) do
     formated_content = format_key_value_pairs(content)
