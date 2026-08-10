@@ -20,7 +20,8 @@ defmodule Bench.MixProject do
 
   defp aliases() do
     [
-      "bench.xml_to_map": ["run xml_to_map.exs"]
+      "bench.xml_to_map": ["run xml_to_map.exs"],
+      "bench.refactor_comparison": ["run refactor_comparison.exs"]
     ]
   end
 
