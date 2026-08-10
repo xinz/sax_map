@@ -135,16 +135,16 @@ Calculating statistics...
 Formatting results...
 
 Name                                          ips        average  deviation         median         99th %
-SAXMap.from_string ignore attribute      200.24 K        4.99 μs   ±224.70%        4.75 μs        8.79 μs
-SAXMap.from_string with attribute        189.12 K        5.29 μs   ±219.38%        5.04 μs       10.58 μs
-XmlToMap.nested_map with attribute       183.05 K        5.46 μs   ±151.45%        5.25 μs       13.79 μs
-XmlToMap.naive_map ignore attribute      144.77 K        6.91 μs   ±137.97%        6.58 μs       16.17 μs
+SAXMap.from_string ignore attribute      212.35 K        4.71 μs   ±237.45%        4.54 μs        6.71 μs
+SAXMap.from_string with attribute        201.82 K        4.95 μs   ±240.12%        4.75 μs        9.17 μs
+XmlToMap.nested_map with attribute       181.14 K        5.52 μs   ±139.54%        5.29 μs       14.04 μs
+XmlToMap.naive_map ignore attribute      144.49 K        6.92 μs   ±140.77%        6.58 μs       16.88 μs
 
 Comparison:
-SAXMap.from_string ignore attribute      200.24 K
-SAXMap.from_string with attribute        189.12 K - 1.06x slower +0.29 μs
-XmlToMap.nested_map with attribute       183.05 K - 1.09x slower +0.47 μs
-XmlToMap.naive_map ignore attribute      144.77 K - 1.38x slower +1.91 μs
+SAXMap.from_string ignore attribute      212.35 K
+SAXMap.from_string with attribute        201.82 K - 1.05x slower +0.25 μs
+XmlToMap.nested_map with attribute       181.14 K - 1.17x slower +0.81 μs
+XmlToMap.naive_map ignore attribute      144.49 K - 1.47x slower +2.21 μs
 
 Memory usage statistics:
 
@@ -178,12 +178,12 @@ Calculating statistics...
 Formatting results...
 
 Name                                        ips        average  deviation         median         99th %
-SAXMap.from_string mixed content         556.11        1.80 ms     ±7.62%        1.77 ms        2.08 ms
-XmlToMap.nested_map mixed content        455.80        2.19 ms     ±7.48%        2.18 ms        2.70 ms
+SAXMap.from_string mixed content         590.00        1.69 ms     ±5.98%        1.70 ms        1.92 ms
+XmlToMap.nested_map mixed content        470.66        2.12 ms     ±5.69%        2.10 ms        2.56 ms
 
 Comparison:
-SAXMap.from_string mixed content         556.11
-XmlToMap.nested_map mixed content        455.80 - 1.22x slower +0.40 ms
+SAXMap.from_string mixed content         590.00
+XmlToMap.nested_map mixed content        470.66 - 1.25x slower +0.43 ms
 
 Memory usage statistics:
 
