@@ -111,40 +111,85 @@ Output:
 
 ```bash
 Operating System: macOS
-CPU Information: Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz
-Number of Available Cores: 16
-Available memory: 32 GB
-Elixir 1.12.2
-Erlang 24.0.4
+CPU Information: Apple M2 Pro
+Number of Available Cores: 10
+Available memory: 16 GB
+Elixir 1.19.5
+Erlang 28.2
+JIT enabled: true
 
 Benchmark suite executing with the following configuration:
 warmup: 2 s
 time: 10 s
 memory time: 2 s
+reduction time: 0 ns
 parallel: 1
 inputs: none specified
-Estimated total run time: 42 s
+Estimated total run time: 56 s
 
-Benchmarking SAXMap.from_string ignore attribute...
-Benchmarking SAXMap.from_string with attribute...
-Benchmarking XmlToMap.naive_map...
+Benchmarking SAXMap.from_string ignore attribute ...
+Benchmarking SAXMap.from_string with attribute ...
+Benchmarking XmlToMap.naive_map ignore attribute ...
+Benchmarking XmlToMap.nested_map with attribute ...
+Calculating statistics...
+Formatting results...
 
 Name                                          ips        average  deviation         median         99th %
-SAXMap.from_string ignore attribute      105.03 K        9.52 μs   ±129.42%           9 μs          33 μs
-SAXMap.from_string with attribute         96.74 K       10.34 μs   ±110.08%           9 μs          35 μs
-XmlToMap.naive_map                        26.31 K       38.01 μs    ±46.21%          33 μs         105 μs
+SAXMap.from_string ignore attribute      200.24 K        4.99 μs   ±224.70%        4.75 μs        8.79 μs
+SAXMap.from_string with attribute        189.12 K        5.29 μs   ±219.38%        5.04 μs       10.58 μs
+XmlToMap.nested_map with attribute       183.05 K        5.46 μs   ±151.45%        5.25 μs       13.79 μs
+XmlToMap.naive_map ignore attribute      144.77 K        6.91 μs   ±137.97%        6.58 μs       16.17 μs
 
 Comparison:
-SAXMap.from_string ignore attribute      105.03 K
-SAXMap.from_string with attribute         96.74 K - 1.09x slower +0.82 μs
-XmlToMap.naive_map                        26.31 K - 3.99x slower +28.49 μs
+SAXMap.from_string ignore attribute      200.24 K
+SAXMap.from_string with attribute        189.12 K - 1.06x slower +0.29 μs
+XmlToMap.nested_map with attribute       183.05 K - 1.09x slower +0.47 μs
+XmlToMap.naive_map ignore attribute      144.77 K - 1.38x slower +1.91 μs
 
 Memory usage statistics:
 
 Name                                   Memory usage
-SAXMap.from_string ignore attribute        14.61 KB
-SAXMap.from_string with attribute          16.69 KB - 1.14x memory usage +2.08 KB
-XmlToMap.naive_map                         40.90 KB - 2.80x memory usage +26.29 KB
+SAXMap.from_string ignore attribute        14.98 KB
+SAXMap.from_string with attribute          16.17 KB - 1.08x memory usage +1.20 KB
+XmlToMap.nested_map with attribute         31.62 KB - 2.11x memory usage +16.64 KB
+XmlToMap.naive_map ignore attribute        34.26 KB - 2.29x memory usage +19.28 KB
+
+**All measurements for memory usage were the same**
+Operating System: macOS
+CPU Information: Apple M2 Pro
+Number of Available Cores: 10
+Available memory: 16 GB
+Elixir 1.19.5
+Erlang 28.2
+JIT enabled: true
+
+Benchmark suite executing with the following configuration:
+warmup: 2 s
+time: 10 s
+memory time: 2 s
+reduction time: 0 ns
+parallel: 1
+inputs: none specified
+Estimated total run time: 28 s
+
+Benchmarking SAXMap.from_string mixed content ...
+Benchmarking XmlToMap.nested_map mixed content ...
+Calculating statistics...
+Formatting results...
+
+Name                                        ips        average  deviation         median         99th %
+SAXMap.from_string mixed content         556.11        1.80 ms     ±7.62%        1.77 ms        2.08 ms
+XmlToMap.nested_map mixed content        455.80        2.19 ms     ±7.48%        2.18 ms        2.70 ms
+
+Comparison:
+SAXMap.from_string mixed content         556.11
+XmlToMap.nested_map mixed content        455.80 - 1.22x slower +0.40 ms
+
+Memory usage statistics:
+
+Name                                 Memory usage
+SAXMap.from_string mixed content          6.04 MB
+XmlToMap.nested_map mixed content         9.47 MB - 1.57x memory usage +3.43 MB
 
 **All measurements for memory usage were the same**
 ```

@@ -477,6 +477,54 @@ defmodule SAXMapTest do
     }
   end
 
+  test "mixed content keeps a child named content" do
+    xml = "<p>before<content>child</content>after</p>"
+
+    {:ok, map} = SAXMap.from_string(xml)
+
+    # Preserve the existing mixed-content behavior: a child named "content"
+    # remains alongside the synthetic text-content entry.
+    assert map == %{"p" => %{"content" => ["child", "before", "after"]}}
+
+    {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, "@"})
+
+    assert map == %{
+             "p" => %{
+               "content" => %{
+                 "content" => [
+                   %{"content" => "child"},
+                   "before",
+                   "after"
+                 ]
+               }
+             }
+           }
+  end
+
+  test "nested attributes preserve content-key collisions" do
+    xml = "<root><item content=\"attribute\">text</item></root>"
+
+    {:ok, map} = SAXMap.from_string(xml, ignore_attribute: false)
+
+    assert map == %{
+             "root" => %{
+               "content" => %{
+                 "item" => %{"content" => ["attribute", "text"]}
+               }
+             }
+           }
+
+    {:ok, map} = SAXMap.from_string(xml, ignore_attribute: {false, "@"})
+
+    assert map == %{
+             "root" => %{
+               "content" => %{
+                 "item" => %{"@content" => "attribute", "content" => "text"}
+               }
+             }
+           }
+  end
+
   test "text node starting with newline" do
     xml = """
     <xml>
